@@ -12,9 +12,13 @@
       <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
+      <XPManifest>
+        <TextName Value="Parmaja.miniIRChat"/>
+        <TextDesc Value="miniIRChat IDE"/>
+      </XPManifest>
       <Icon Value="0"/>
     </General>
-    <BuildModes Count="3">
+    <BuildModes Count="4">
       <Item1 Name="Debug" Default="True"/>
       <Item2 Name="Debug64">
         <CompilerOptions>
@@ -98,6 +102,42 @@
           </Other>
         </CompilerOptions>
       </Item3>
+      <Item4 Name="Release64">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <PathDelim Value="\"/>
+          <Target>
+            <Filename Value="IRChat"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="..\..\..\source;..\..\..\..\scat\src"/>
+            <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <SmartLinkUnit Value="True"/>
+            <Optimizations>
+              <OptimizationLevel Value="3"/>
+            </Optimizations>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+            <LinkSmart Value="True"/>
+            <Options>
+              <Win32>
+                <GraphicApplication Value="True"/>
+              </Win32>
+            </Options>
+          </Linking>
+          <Other>
+            <CompilerMessages>
+              <IgnoredMessages idx11031="True" idx11030="True" idx5024="True"/>
+            </CompilerMessages>
+          </Other>
+        </CompilerOptions>
+      </Item4>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -159,11 +199,10 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="IRChat"/>
+      <Filename Value="..\bin\IRChat"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="..\..\..\source;..\..\..\..\scat\src"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
@@ -198,16 +237,10 @@
     </Other>
   </CompilerOptions>
   <Debugging>
-    <Exceptions Count="3">
+    <Exceptions Count="1">
       <Item1>
         <Name Value="EAbort"/>
       </Item1>
-      <Item2>
-        <Name Value="ECodetoolError"/>
-      </Item2>
-      <Item3>
-        <Name Value="EFOpenError"/>
-      </Item3>
     </Exceptions>
   </Debugging>
 </CONFIG>

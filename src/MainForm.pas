@@ -215,7 +215,6 @@ end;
 
 procedure TMainFrm.FormCreate(Sender: TObject);
 begin
-
 end;
 
 procedure TMainFrm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -498,6 +497,7 @@ var
   i: Integer;
   ini: TIniFile;
   aProfile: string;
+  aStream: TStream;
 begin
   inherited;
   InstallFileLog('log.txt');
@@ -526,7 +526,13 @@ begin
   EnumProfiles;
   ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(aProfile);
   LoadProfile(aProfile);
-  WelcomeHtmlPnl.SetHtmlFromFile(Application.Location + 'chat.html');
+  aStream := CreateChatHTMLStream;
+  try
+    WelcomeHtmlPnl.SetHtmlFromStream(aStream);
+    //WelcomeHtmlPnl.SetHtmlFromFile(Application.Location + 'chat.html');
+  finally
+    FreeAndNil(aStream);
+  end;
   //Find Body
   //Viewer.EnumDocuments(@HtmlEnumerator);
   for i :=0 to WelcomeHtmlPnl.MasterFrame.Html.HtmlNode.ChildCount - 1 do

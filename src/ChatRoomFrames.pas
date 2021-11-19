@@ -1,4 +1,4 @@
-unit ChatRoomFrames;
+  unit ChatRoomFrames;
 
 {$mode objfpc}{$H+}
 {$define use_webbrowser}
@@ -6,13 +6,18 @@ unit ChatRoomFrames;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, ComCtrls, Menus,
-  Graphics,
+  Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, ComCtrls, Menus, Graphics,
+  LCLType,
   {$ifdef use_webbrowser}
   IpHtml,
   //HtmlView, HTMLSubs,
   {$endif}
   SynEdit, SynHighlighterMulti;
+
+{
+const
+  sHTMLChat = {$i 'chat.html'}
+}
 
 type
 
@@ -54,16 +59,23 @@ type
     procedure AddMessage(aMsg: string; AClassName: string = ''; IsHeader: Boolean = False);
   end;
 
+function CreateChatHTMLStream: TStream;
+
 implementation
 
 uses
   MainForm;
 
+function CreateChatHTMLStream: TStream;
+begin
+  Result := TResourceStream.Create(hInstance, 'ChatHtml', RT_RCDATA);
+end;
+
 {$R *.lfm}
 
 { TChatRoomFrame }
 
-procedure TChatRoomFrame.MenuItem1Click(Sender: TObject);
+procedure TChatRoomFrame.OpMnuClick(Sender: TObject);
 var
   aUser: string;
 begin
@@ -72,7 +84,7 @@ begin
     IRC.OpUser(RoomName, aUser);
 end;
 
-procedure TChatRoomFrame.OpMnuClick(Sender: TObject);
+procedure TChatRoomFrame.MenuItem1Click(Sender: TObject);
 var
   aUser: string;
 begin
@@ -137,6 +149,7 @@ end;
 constructor TChatRoomFrame.Create(TheOwner: TComponent);
 var
   i: Integer;
+  aStream: TStream;
 begin
   inherited Create(TheOwner);
   {$ifdef use_webbrowser}
@@ -156,7 +169,13 @@ begin
     //ScrollBars := ssAutoVertical;
   end;
   //Viewer.LoadFromFile(Application.Location + 'chat.html');
-  Viewer.SetHtmlFromFile(Application.Location + 'chat.html');
+  aStream:= CreateChatHTMLStream;
+  try
+    Viewer.SetHtmlFromStream(aStream);
+    //Viewer.SetHtmlFromFile(Application.Location + 'chat.html');
+  finally
+    FreeAndNil(aStream);
+  end;
   //Find Body
   //Viewer.EnumDocuments(@HtmlEnumerator);
   for i :=0 to Viewer.MasterFrame.Html.HtmlNode.ChildCount - 1 do

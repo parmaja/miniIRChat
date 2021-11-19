@@ -10,6 +10,7 @@ uses
   Forms, MainForm, mnIRCClients, ChatRoomFrames;
 
 {$R *.res}
+{$R IRChatRes.rc}
 
 begin
   RequireDerivedFormResource :=True;
