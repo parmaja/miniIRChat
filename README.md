@@ -27,11 +27,11 @@ Keep it as simple as possible.
 
 ### History
 
-It moved from [minilib https://github.com/parmaja/minilib/tree/master/socket/demo/lazarus/IRChat] demeo folder
+It moved from [minilib](https://github.com/parmaja/minilib/tree/master/socket/demo/lazarus/IRChat) demo folder
 
 ### Build
 
-miniIRChat is FreePascal/Lazarus project, to compile it you need to install all packages that needed
+miniIRChat is a FreePascal/Lazarus project, to compile it you need to install all packages it depends on
 
  * Use source code from github.com in branch "release", or use last tag,  branch "master" is my working upstream, it is not stable.
  * FreePascal FPC 3.2 or later
@@ -53,4 +53,4 @@ Open each package in Lazarus and compile it in order.
 
 ### Testing and Use
 
-My prefered IRC server is [ergo https://github.com/ergochat/ergo/]
+My prefered IRC server is [ergo](https://github.com/ergochat/ergo/).
