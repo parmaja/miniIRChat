@@ -11,7 +11,8 @@ interface
 uses
   Classes, SysUtils, StrUtils, FileUtil, IpHtml, Forms, Controls, Graphics,
   {$ifdef windows}Windows,{$endif}
-  Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType, TypInfo, mnRTTIUtils, RttiUtils,
+  Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType, TypInfo,
+  base64,
   mnMsgBox, GUIMsgBox, mnLogs, mnClasses, IRChatClasses,
   ChatRoomFrames, ServerForm, mnIRCClients;
 
@@ -175,7 +176,7 @@ begin
   try
     Ini.WriteString(AName, 'Title', Profile.Title);
     Ini.WriteString(AName, 'Username', Profile.Username);
-    Ini.WriteString(AName, 'Password', Profile.Password);
+    Ini.WriteString(AName, 'Password', EncodeStringBase64(Profile.Password));
     Ini.WriteString(AName, 'Nicknames', Profile.Nicknames);
     Ini.WriteString(AName, 'RealName', Profile.RealName);
     Ini.WriteString(AName, 'Rooms', Profile.Rooms);
@@ -198,7 +199,7 @@ begin
   try
     Profile.Title := Ini.ReadString(AName, 'Title', '');
     Profile.Username := Ini.ReadString(AName, 'Username', '');
-    Profile.Password := Ini.ReadString(AName, 'Password', '');
+    Profile.Password := DecodeStringBase64(Ini.ReadString(AName, 'Password', ''));
     Profile.Nicknames := Ini.ReadString(AName, 'Nicknames', '');
     Profile.RealName := Ini.ReadString(AName, 'RealName', '');
     Profile.Rooms := Ini.ReadString(AName, 'Rooms', '');
