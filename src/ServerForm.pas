@@ -66,7 +66,7 @@ begin
     AuthCbo.Items.AddObject('None/Custom', TObject(Ord(authNone)));
     AuthCbo.Items.AddObject('PASS', TObject(Ord(authPASS)));
     AuthCbo.Items.AddObject('IDENTIFY', TObject(Ord(authIDENTIFY)));
-    i := AuthCbo.Items.IndexOfObject(TObject(Ord(Profile.Auth)));
+    i := AuthCbo.Items.IndexOfObject(TObject(Ord(Profile.AuthType)));
 
     if i < 0 then
       AuthCbo.ItemIndex := 0
@@ -76,6 +76,7 @@ begin
     UserEdit.Text := Profile.Username;
     PasswordEdit.Text := Profile.Password;
     CustomAuthEdit.Text := Profile.CustomAuth;
+    RoomsEdit.Text := Profile.Rooms;
 
     Result := ShowModal = mrOk;
     if Result then
@@ -89,11 +90,12 @@ begin
       Profile.NickNames := NicknameEdit.Text;
       Profile.RealName := RealNameEdit.Text;
 
-      Profile.Auth := TIRCAuth(Integer(AuthCbo.Items.Objects[AuthCbo.ItemIndex]));
+      Profile.AuthType := TIRCAuthType(Integer(AuthCbo.Items.Objects[AuthCbo.ItemIndex]));
 
       Profile.Username := UserEdit.Text;
       Profile.Password := PasswordEdit.Text;
       Profile.CustomAuth := CustomAuthEdit.Text;
+      Profile.Rooms := RoomsEdit.Text;
     end;
   end;
 end;

@@ -10,7 +10,8 @@ interface
 
 uses
   Classes, SysUtils, StrUtils, FileUtil, IpHtml, Forms, Controls, Graphics,
-  Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType,
+  {$ifdef windows}Windows,{$endif}
+  Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType, TypInfo, mnRTTIUtils, RttiUtils,
   mnMsgBox, GUIMsgBox, mnLogs, mnClasses, IRChatClasses,
   ChatRoomFrames, ServerForm, mnIRCClients;
 
@@ -33,10 +34,30 @@ type
     procedure DoWhoIs(vUser: string); override;
     procedure DoReceive(vMsgType: TIRCMsgType; vChannel, vUser, vMsg: string); override;
 
-    procedure LoadProfile(AName: string);
-    procedure SaveProfile(AName: string);
+    procedure DoBeforeOpen; override;
+    procedure DoAfterOpen; override;
+  end;
 
-    procedure ConnectProfile;
+  { TuiServerProfile }
+
+  TuiServerProfile = class(TObject)
+  public
+    Profile: TServerProfile;
+    procedure LoadProfile(FileName: string; AName: string);
+    procedure SaveProfile(FileName: string; AName: string);
+  end;
+
+  { TuiServerProfiles }
+
+  TuiServerProfiles = class(specialize TmnObjectList<TuiServerProfile>)
+  private
+  public
+    ProfileFileName: string;
+    function IndexOf(AName: string): Integer;
+    function Find(AName: string): TuiServerProfile;
+    procedure SaveProfiles;
+    procedure LoadProfiles;
+    procedure AddProfile(AProfile: TServerProfile);
   end;
 
   { TuiIRCClients }
@@ -45,22 +66,29 @@ type
   private
     FActive: Boolean;
   public
+    Profiles: TuiServerProfiles;
     Current: TuiIRCClient;
-    procedure Open;
+    constructor Create;
+    destructor Destroy; override;
+    function Find(AName: string): TuiIRCClient;
+    procedure Open(AName: string); overload;
+    procedure Open; overload;
     procedure Close;
     property Active: Boolean read FActive write FActive;
-    procedure SaveToFile(FileName: string);
-    procedure LoadFromFile(FileName: string);
-    procedure AddProfile(AProfile: TServerProfile);
   end;
 
   { TMainFrm }
 
   TMainFrm = class(TForm)
-    Button1: TButton;
-    Button2: TButton;
-    ServersBtn: TButton;
+    AddBtn: TButton;
+    MenuItem2: TMenuItem;
+    ShowMnu: TMenuItem;
+    ExitMnu: TMenuItem;
+    DeleteBtn: TButton;
+    EditBtn: TButton;
     SendEdit: TMemo;
+    TrayIcon: TTrayIcon;
+    TrayPopupMenu: TPopupMenu;
     WelcomeHtmlPnl: TIpHtmlPanel;
     OptionsBtn: TButton;
     WelcomePnl: TPanel;
@@ -80,12 +108,14 @@ type
     SendBtn: TButton;
     SmallImageList: TImageList;
     Splitter1: TSplitter;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure AddBtnClick(Sender: TObject);
+    procedure ExitMnuClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
+    procedure FormWindowStateChange(Sender: TObject);
+    procedure DeleteBtnClick(Sender: TObject);
     procedure ConnectBtnClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure HostEditKeyPress(Sender: TObject; var Key: char);
     procedure JoinBtnClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MsgPageControlChange(Sender: TObject);
@@ -95,21 +125,29 @@ type
     procedure ProfileCboSelect(Sender: TObject);
     procedure SendBtnClick(Sender: TObject);
     procedure SendEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure TrayIconClick(Sender: TObject);
+    procedure TrayIconDblClick(Sender: TObject);
   private
+    FDestroying: Boolean;
     Body: TIpHtmlNodeBODY;
     Recents: TStringList;
     RecentsIndex: Integer;
     procedure AddMessage(aMsg: string; AClassName: string);
+    procedure ForceForegroundWindow;
+    procedure HideApp;
     procedure RecentUp;
     procedure RecentDown;
     procedure AddRecent(S: string);
     procedure LogMessage(S: string);
     function CurrentRoom: string;
-    procedure ConnectNow;
     procedure SendNow;
     function NeedRoom(vRoomName: string; ActiveIt: Boolean = false): TChatRoomFrame;
     procedure SetNick(ANick: string);
+    procedure ShowApp;
   public
+    StartMinimized: Boolean;
+    ShowTray: Boolean;
+    AutoStart: Boolean;
     constructor Create(TheOwner: TComponent); override;
     destructor Destroy; override;
     procedure DeleteProfile(ProfileName: string);
@@ -127,11 +165,13 @@ implementation
 
 {$R *.lfm}
 
-procedure TuiIRCClient.SaveProfile(AName: string);
+{ TuiServerProfile }
+
+procedure TuiServerProfile.SaveProfile(FileName: string; AName: string);
 var
   ini: TIniFile;
 begin
-  ini := TIniFile.Create(Application.Location + 'profiles.ini');
+  ini := TIniFile.Create(FileName);
   try
     Ini.WriteString(AName, 'Title', Profile.Title);
     Ini.WriteString(AName, 'Username', Profile.Username);
@@ -141,6 +181,7 @@ begin
     Ini.WriteString(AName, 'Rooms', Profile.Rooms);
     Ini.WriteString(AName, 'Host', Profile.Host);
     Ini.WriteString(AName, 'Port', Profile.Port);
+    Ini.WriteString(AName, 'AuthType', AuthToString(Profile.AuthType));
     Ini.WriteString(AName, 'CustomAuth', Profile.CustomAuth);
     Ini.WriteBool(AName, 'SSL', Profile.UseSSL);
   finally
@@ -148,18 +189,38 @@ begin
   end;
 end;
 
-procedure TuiIRCClient.ConnectProfile;
+procedure TuiServerProfile.LoadProfile(FileName: string; AName: string);
 var
-  Room: string;
-  List: TStringList;
+  ini: TIniFile;
 begin
+  inherited;
+  ini := TIniFile.Create(FileName);
+  try
+    Profile.Title := Ini.ReadString(AName, 'Title', '');
+    Profile.Username := Ini.ReadString(AName, 'Username', '');
+    Profile.Password := Ini.ReadString(AName, 'Password', '');
+    Profile.Nicknames := Ini.ReadString(AName, 'Nicknames', '');
+    Profile.RealName := Ini.ReadString(AName, 'RealName', '');
+    Profile.Rooms := Ini.ReadString(AName, 'Rooms', '');
+    Profile.Host := Ini.ReadString(AName, 'Host', '');
+    Profile.Port := Ini.ReadString(AName, 'Port', '6667');
+    Profile.AuthType := StringToAuth(Ini.ReadString(AName, 'AuthType', ''));
+    Profile.CustomAuth := Ini.ReadString(AName, 'CustomAuth', '');
+    Profile.UseSSL := Ini.ReadBool(AName, 'SSL', false);
+  finally
+    FreeAndNil(ini);
+  end;
+end;
+
+procedure TuiIRCClient.DoBeforeOpen;
+begin
+  inherited;
   Host := Profile.Host;
   Port := Profile.Port;
   UseSSL := Profile.UseSSL;
 
   Nicks.Clear;
-  Nicks.Delimiter := ',';
-  Nicks.DelimitedText := Profile.NickNames;
+  Nicks.CommaText := Profile.NickNames;
   if Profile.NickNames = '' then
   begin
     Nicks.Add(Profile.Username);
@@ -170,12 +231,18 @@ begin
   if RealName = '' then
     RealName := Profile.Username;
 
-  Auth := Profile.Auth; //authPASS
+  AuthType := Profile.AuthType; //authPASS
   //IRC.Auth := authIDENTIFY;
   Username := Profile.Username;
   Password := Profile.Password;
 
-  Open;
+end;
+procedure TuiIRCClient.DoAfterOpen;
+var
+  Room: string;
+  List: TStringList;
+begin
+  inherited;
   List := TStringList.Create;
   try
     List.CommaText := Profile.Rooms;
@@ -189,37 +256,92 @@ begin
   end;
 end;
 
-procedure TuiIRCClient.LoadProfile(AName: string);
-var
-  ini: TIniFile;
+{ TuiIRCClients }
+
+constructor TuiIRCClients.Create;
 begin
   inherited;
-  ini := TIniFile.Create(Application.Location + 'profiles.ini');
-  try
-    Profile.Title := Ini.ReadString(AName, 'Title', '');
-    Profile.Username := Ini.ReadString(AName, 'Username', '');
-    Profile.Password := Ini.ReadString(AName, 'Password', '');
-    Profile.Nicknames := Ini.ReadString(AName, 'Nicknames', '');
-    Profile.RealName := Ini.ReadString(AName, 'RealName', '');
-    Profile.Rooms := Ini.ReadString(AName, 'Rooms', '');
-    Profile.Host := Ini.ReadString(AName, 'Host', '');
-    Profile.Port := Ini.ReadString(AName, 'Port', '6667');
-    Profile.CustomAuth := Ini.ReadString(AName, 'CustomAuth', '');
-    Profile.UseSSL := Ini.ReadBool(AName, 'SSL', false);
-  finally
-    FreeAndNil(ini);
+  Profiles := TuiServerProfiles.Create;
+end;
+
+destructor TuiIRCClients.Destroy;
+begin
+  FreeAndNil(Profiles);
+  inherited;
+end;
+
+function TuiIRCClients.Find(AName: string): TuiIRCClient;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    if SameText(Self[i].Profile.Title, AName) then
+    begin
+      Result := Self[i];
+      break;
+    end;
   end;
 end;
 
-{ TuiIRCClients }
+procedure TuiIRCClients.Open(AName: string);
+var
+  aClient: TuiIRCClient;
+  i: Integer;
+begin
+  i := Profiles.IndexOf(AName);
+  if i >=0 then
+  begin
+    aClient := TuiIRCClient.Create;
+    Add(aClient);
+    aClient.Profile := Profiles[i].Profile;
+    aClient.Open;
+  end;
+end;
+
+function TuiServerProfiles.IndexOf(AName: string): Integer;
+var
+  i: Integer;
+begin
+  Result := -1;
+  for i := 0 to Count - 1 do
+  begin
+    if SameText(Self[i].Profile.Title, AName) then
+    begin
+      Result := i;
+      break;
+    end;
+  end;
+end;
+
+function TuiServerProfiles.Find(AName: string): TuiServerProfile;
+var
+  i: Integer;
+begin
+  Result := nil;
+  for i := 0 to Count - 1 do
+  begin
+    if SameText(Self[i].Profile.Title, AName) then
+    begin
+      Result := Self[i];
+      break;
+    end;
+  end;
+end;
 
 procedure TuiIRCClients.Open;
 var
-  itm: TuiIRCClient;
+  itm: TuiServerProfile;
+  aClient: TuiIRCClient;
 begin
-  for itm in Self do
+  FActive := True;
+  for itm in Profiles do
   begin
-    itm.Open;
+    aClient := TuiIRCClient.Create;
+    Add(aClient);
+    aClient.Profile := itm.Profile;
+    aClient.Open;
   end;
 end;
 
@@ -229,46 +351,51 @@ var
 begin
   for itm in Self do
   begin
-    itm.Open;
+    itm.Close;
   end;
+  FActive := False;
 end;
 
-procedure TuiIRCClients.SaveToFile(FileName: string);
+procedure TuiServerProfiles.SaveProfiles;
 var
-  itm: TuiIRCClient;
+  itm: TuiServerProfile;
 begin
   for itm in Self do
   begin
-    itm.SaveProfile(itm.Profile.Title);
+    itm.SaveProfile(ProfileFileName, itm.Profile.Title);
   end;
 end;
 
-procedure TuiIRCClients.LoadFromFile(FileName: string);
+procedure TuiServerProfiles.LoadProfiles;
 var
   ini: TIniFile;
   Sections: TStringList;
   s: string;
+  itm: TuiServerProfile;
 begin
-  ini := TIniFile.Create(FileName);
+  ini := TIniFile.Create(ProfileFileName);
   try
     Sections := TStringList.Create;
     ini.ReadSections(Sections);
     for s in Sections do
     begin
-      with TuiIRCClient.Create do
-        LoadProfile(s);
+      itm := TuiServerProfile.Create;
+      Add(itm);
+      itm.LoadProfile(ProfileFileName, s);
     end;
   finally
     FreeAndNil(ini);
   end;
 end;
 
-procedure TuiIRCClients.AddProfile(AProfile: TServerProfile);
+procedure TuiServerProfiles.AddProfile(AProfile: TServerProfile);
+var
+  itm: TuiServerProfile;
 begin
-  with TuiIRCClient.Create do
-  begin
-    Profile := AProfile;
-  end;
+  itm := TuiServerProfile.Create;
+  Add(itm);
+  itm.Profile := AProfile;
+  itm.SaveProfile(ProfileFileName, AProfile.Title);
 end;
 
 { TuiIRCClient }
@@ -316,22 +443,20 @@ begin
     begin
       MainFrm.ChatPnl.Visible := False;
       MainFrm.WelcomePnl.Visible := True;
-      MainFrm.ConnectBtn.Caption := 'Connect';
       while MainFrm.MsgPageControl.PageCount > 0 do
         MainFrm.MsgPageControl.Page[0].Free;
     end;
-    prgConnecting:
-      MainFrm.ConnectBtn.Caption := 'Connecting';
+    prgConnecting:;
+      //MainFrm.ConnectBtn.Caption := 'Connecting';
     prgConnected:
     begin
-      MainFrm.ConnectBtn.Caption := 'Disconnect';
       MainFrm.WelcomePnl.Visible := False;
       MainFrm.ChatPnl.Visible := True;
       MainFrm.SendEdit.SetFocus;
     end;
     prgReady:
     begin
-      MainFrm.ConnectBtn.Caption := 'Disconnect';
+      //MainFrm.ConnectBtn.Caption := 'Disconnect';
     end;
   end;
 end;
@@ -366,10 +491,14 @@ end;
 procedure TMainFrm.ConnectBtnClick(Sender: TObject);
 begin
   if IRCClients.Active then
-    IRCClients.Close
+  begin
+    IRCClients.Close;
+    ConnectBtn.Caption := 'Disconnect';
+  end
   else
   begin
-    ConnectNow;
+    ConnectBtn.Caption := 'Connect';
+    IRCClients.Open;
   end;
 end;
 
@@ -388,39 +517,62 @@ begin
   end;
 end;
 
-procedure TMainFrm.Button1Click(Sender: TObject);
+procedure TMainFrm.AddBtnClick(Sender: TObject);
 var
   Profile: TServerProfile;
 begin
+  Profile := Default(TServerProfile);
   if ShowServerProfile(Profile) then
   begin
-    IRCClients.AddProfile(Profile);
+    IRCClients.Profiles.AddProfile(Profile);
     EnumProfiles;
     ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(Profile.Title);
   end;
 end;
 
-procedure TMainFrm.Button2Click(Sender: TObject);
+procedure TMainFrm.ExitMnuClick(Sender: TObject);
 begin
-  if ProfileCbo.Text <> '' then
+  FDestroying := True;
+  Close;
+end;
+
+procedure TMainFrm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
+var
+  ini: TIniFile;
+begin
+  if FDestroying then
   begin
-    DeleteProfile(ProfileCbo.Text);
-    EnumProfiles;
+    CloseAction := caFree;
+    ini := TIniFile.Create(Application.Location + Application.Name + '.ini');
+    try
+      ini.WriteInteger('Size', 'Width', Width);
+      ini.WriteInteger('Size', 'Height', Height);
+    finally
+      ini.Free;
+    end;
+  end
+  else
+  begin
+    //Hide;
+    CloseAction := caHide;
+    HideApp;
   end;
 end;
 
-procedure TMainFrm.ConnectNow;
+procedure TMainFrm.DeleteBtnClick(Sender: TObject);
+var
+  i: Integer;
 begin
-  SaveConfig;
-  IRCClients.Open;
-end;
-
-procedure TMainFrm.HostEditKeyPress(Sender: TObject; var Key: char);
-begin
-  if Key = #13 then
+  if ProfileCbo.Text <> '' then
   begin
-    Key := #0;
-    ConnectNow;
+    if not MsgBox.No('Are you sure want to delete ' + ProfileCbo.Text) then
+    begin
+      DeleteProfile(ProfileCbo.Text);
+      i := IRCClients.Profiles.IndexOf(ProfileCbo.Text);
+      if i >= 0 then
+        IRCClients.Profiles.Delete(i);
+      EnumProfiles;
+    end;
   end;
 end;
 
@@ -455,18 +607,31 @@ begin
 end;
 
 procedure TMainFrm.OptionsBtnClick(Sender: TObject);
+var
+  aProfile: TServerProfile;
+  itm: TuiServerProfile;
 begin
-
+  itm := IRCClients.Profiles.Find(ProfileCbo.Text);
+  if itm <> nil then
+  begin
+    aProfile := itm.Profile;
+    if ShowServerProfile(aProfile) then
+    begin
+      itm.Profile := aProfile;
+      DeleteProfile(ProfileCbo.Text);
+      itm.SaveProfile(IRCClients.Profiles.ProfileFileName, itm.Profile.Title);
+      EnumProfiles;
+      ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(itm.Profile.Title);
+    end;
+  end;
 end;
 
 procedure TMainFrm.PasswordEditChange(Sender: TObject);
 begin
-
 end;
 
 procedure TMainFrm.ProfileCboSelect(Sender: TObject);
 begin
-  //LoadProfile(ProfileCbo.Text);
 end;
 
 procedure TMainFrm.SendBtnClick(Sender: TObject);
@@ -495,6 +660,16 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TMainFrm.TrayIconClick(Sender: TObject);
+begin
+  ForceForegroundWindow;
+end;
+
+procedure TMainFrm.TrayIconDblClick(Sender: TObject);
+begin
+  ShowApp;
 end;
 
 procedure TMainFrm.SendNow;
@@ -667,11 +842,15 @@ begin
     FreeAndNil(ini);
   end;
   IRCClients := TuiIRCClients.Create;
+  IRCClients.Profiles.ProfileFileName := Application.Location + 'profiles.ini';
   MsgPageControl.ActivePageIndex := 0;
   LogEdit.Clear;
-  IRCClients.LoadFromFile(Application.Location + 'profiles.ini');
+  IRCClients.Profiles.LoadProfiles;
   EnumProfiles;
-  ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(aProfile);
+  i := ProfileCbo.Items.IndexOf(aProfile);
+  if i < 0 then
+    i := 0;
+  ProfileCbo.ItemIndex := i;
   aStream := CreateChatHTMLStream;
   try
     WelcomeHtmlPnl.SetHtmlFromStream(aStream);
@@ -688,10 +867,15 @@ begin
       break;
     end;
   //AddMessage('Welcome to irc, click connect', 'action');
+  if StartMinimized then
+    HideApp
+  else if ShowTray then
+    TrayIcon.Show;
 end;
 
 destructor TMainFrm.Destroy;
 begin
+  FDestroying := True;
   IRCClients.Close;
   IRCClients.Free;
   SaveConfig;
@@ -715,12 +899,23 @@ end;
 procedure TMainFrm.EnumProfiles;
 var
   i: Integer;
+  Old: string;
 begin
+  Old := ProfileCbo.Text;
   ProfileCbo.Clear;
-  for i := 0 to IRCClients.Count -1 do
+  for i := 0 to IRCClients.Profiles.Count -1 do
   begin
-    ProfileCbo.Items.Add(IRCClients[i].Profile.Title);
+    ProfileCbo.Items.Add(IRCClients.Profiles[i].Profile.Title);
   end;
+  if Old <> '' then
+    i := ProfileCbo.Items.IndexOf(Old)
+  else
+    i := 0;
+  if i < 0 then
+    i := 0;
+
+  ProfileCbo.ItemIndex := i;
+
 end;
 
 procedure TMainFrm.SaveConfig;
@@ -892,6 +1087,56 @@ begin
 
   WelcomeHtmlPnl.Update;
   WelcomeHtmlPnl.Scroll(hsaEnd);
+end;
+
+procedure TMainFrm.ForceForegroundWindow;
+{$ifdef windows}
+var
+  aForeThread, aAppThread: DWORD;
+  aProcessID: DWORD;
+  {$endif}
+begin
+  ShowApp;
+  {$ifdef windows}
+  aProcessID := 0;
+  aForeThread := GetWindowThreadProcessId(GetForegroundWindow(), aProcessID);
+  aAppThread := GetCurrentThreadId();
+
+  if (aForeThread <> aAppThread) then
+  begin
+    AttachThreadInput(aForeThread, aAppThread, True);
+    BringWindowToTop(Handle);
+    AttachThreadInput(aForeThread, aAppThread, False);
+  end
+  else
+    BringWindowToTop(Handle);
+  {$endif}
+  BringToFront;
+end;
+
+procedure TMainFrm.ShowApp;
+begin
+  Visible := True;
+  WindowState := wsNormal;
+  ShowInTaskBar := stDefault;
+  Show;
+  if ShowTray then
+    TrayIcon.Show
+  else
+    TrayIcon.Hide;
+end;
+
+procedure TMainFrm.HideApp;
+begin
+  ShowInTaskBar := stNever;
+  Hide;
+  TrayIcon.Show;
+end;
+
+procedure TMainFrm.FormWindowStateChange(Sender: TObject);
+begin
+  if WindowState = wsMinimized then
+    HideApp;
 end;
 
 end.

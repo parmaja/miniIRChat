@@ -1,5 +1,6 @@
 unit IRChatClasses;
 {$mode ObjFPC}{$H+}
+{$modeswitch advancedrecords}
 {**
  *  This file is part of the "miniIRChat"
  *  @license  MIT (https://opensource.org/licenses/MIT)
@@ -10,9 +11,10 @@ interface
 
 uses
   Classes, SysUtils,
-  mnIRCClients;
+  typinfo, mnIRCClients;
 
 type
+
   TServerProfile = record
     Title: string;
 
@@ -24,13 +26,27 @@ type
     RealName: string;
     Rooms: string;
 
-    Auth: TIRCAuth;
+    AuthType: TIRCAuthType;
     Username: string;
     Password: string;
     CustomAuth: string;
   end;
 
+function AuthToString(EnumValue: TIRCAuthType): string;
+function StringToAuth(EnumValue: String): TIRCAuthType;
+
 implementation
+
+function AuthToString(EnumValue: TIRCAuthType): string;
+begin
+  Result := GetEnumName(TypeInfo(TIRCAuthType), Ord(EnumValue));
+end;
+
+function StringToAuth(EnumValue: String): TIRCAuthType;
+begin
+  Result := TIRCAuthType(GetEnumValue(TypeInfo(TIRCAuthType), EnumValue));
+end;
+
 
 end.
 

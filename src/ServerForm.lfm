@@ -8,6 +8,7 @@ object ServerForm: TServerForm
   ClientHeight = 378
   ClientWidth = 302
   OnCreate = FormCreate
+  Position = poMainFormCenter
   LCLVersion = '2.3.0.0'
   object UseSSLChk: TCheckBox
     Left = 251
@@ -108,7 +109,6 @@ object ServerForm: TServerForm
     Width = 286
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 10
-    Text = '#parmaja'
   end
   object Button1: TButton
     Left = 8
