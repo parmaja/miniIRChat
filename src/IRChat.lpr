@@ -1,4 +1,9 @@
 program IRChat;
+{**
+ *  This file is part of the "Mini Library"
+ *  @license  MIT (https://opensource.org/licenses/MIT)
+ *  @author by Zaher Dirkey <zaher, zaherdirkey>
+*}
 
 {$mode objfpc}{$H+}
 
@@ -7,7 +12,7 @@ uses
   cthreads,
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
-  Forms, MainForm, mnIRCClients, ChatRoomFrames;
+  Forms, MainForm, mnIRCClients, ChatRoomFrames, ServerForm, IRChatClasses;
 
 {$R *.res}
 {$R IRChatRes.rc}

@@ -25,11 +25,10 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="IRChat64"/>
+            <Filename Value="..\bin\IRChat64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\..\..\source;..\..\..\..\scat\src"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -71,11 +70,10 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="IRChat"/>
+            <Filename Value="..\bin\IRChat"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\..\..\source;..\..\..\..\scat\src"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -107,11 +105,10 @@
           <Version Value="11"/>
           <PathDelim Value="\"/>
           <Target>
-            <Filename Value="IRChat"/>
+            <Filename Value="..\bin\IRChat64"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="..\..\..\source;..\..\..\..\scat\src"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -148,7 +145,7 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="8">
+    <RequiredPackages Count="6">
       <Item1>
         <PackageName Value="TurboPowerIPro"/>
       </Item1>
@@ -159,22 +156,16 @@
         <PackageName Value="MiniCtrls"/>
       </Item3>
       <Item4>
-        <PackageName Value="NativeLib"/>
+        <PackageName Value="MiniSockets"/>
       </Item4>
       <Item5>
-        <PackageName Value="MiniXML"/>
+        <PackageName Value="MiniCommons"/>
       </Item5>
       <Item6>
-        <PackageName Value="MiniSockets"/>
-      </Item6>
-      <Item7>
-        <PackageName Value="MiniCommons"/>
-      </Item7>
-      <Item8>
         <PackageName Value="LCL"/>
-      </Item8>
+      </Item6>
     </RequiredPackages>
-    <Units Count="3">
+    <Units Count="5">
       <Unit0>
         <Filename Value="IRChat.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -193,6 +184,17 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit2>
+      <Unit3>
+        <Filename Value="ServerForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ServerForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="IRChatClasses.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

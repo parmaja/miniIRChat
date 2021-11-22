@@ -1,7 +1,11 @@
-  unit ChatRoomFrames;
-
+unit ChatRoomFrames;
 {$mode objfpc}{$H+}
 {$define use_webbrowser}
+{**
+ *  This file is part of the "miniIRChat"
+ *  @license  MIT (https://opensource.org/licenses/MIT)
+ *  @author by Zaher Dirkey <zaher, zaherdirkey>
+*}
 
 interface
 
@@ -12,12 +16,8 @@ uses
   IpHtml,
   //HtmlView, HTMLSubs,
   {$endif}
-  SynEdit, SynHighlighterMulti;
-
-{
-const
-  sHTMLChat = {$i 'chat.html'}
-}
+  SynEdit, SynHighlighterMulti,
+  mnIRCClients;
 
 type
 
@@ -53,6 +53,7 @@ type
     MsgEdit: TSynEdit;
     {$endif}
   public
+    IRCClient: TmnIRCClient;
     RoomName: string;
     IsRoom: Boolean;
     constructor Create(TheOwner: TComponent); override;
@@ -81,7 +82,7 @@ var
 begin
   aUser := GetCurrentUser;
   if aUser <> '' then
-    IRC.OpUser(RoomName, aUser);
+    IRCClients.Current.OpUser(RoomName, aUser);
 end;
 
 procedure TChatRoomFrame.MenuItem1Click(Sender: TObject);
@@ -90,12 +91,11 @@ var
 begin
   aUser := GetCurrentUser;
   if aUser <> '' then
-    IRC.OpUser(RoomName, aUser);
+    IRCClients.Current.OpUser(RoomName, aUser);
 end;
 
 procedure TChatRoomFrame.SaveAsHtmlMnuClick(Sender: TObject);
 begin
-
 end;
 
 procedure TChatRoomFrame.WhoIsMnuClick(Sender: TObject);
@@ -104,7 +104,7 @@ var
 begin
   aUser := GetCurrentUser;
   if aUser <> '' then
-    IRC.WhoIs(aUser);
+    IRCClients.Current.WhoIs(aUser);
 end;
 
 function TChatRoomFrame.GetCurrentUser: string;
@@ -120,7 +120,7 @@ end;
 procedure TChatRoomFrame.HtmlEnumerator(Document: TIpHtml);
 var
    n: TIpHtmlNode;
-   nb: TIpHtmlNodeBODY;
+//   nb: TIpHtmlNodeBODY;
    i: Integer;
 begin
    if not Assigned(Document.HtmlNode) then begin
