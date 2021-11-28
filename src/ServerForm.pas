@@ -39,6 +39,7 @@ type
     RoomsEdit: TEdit;
     UserEdit: TEdit;
     UseSSLChk: TCheckBox;
+    AutoConnectChk: TCheckBox;
     procedure FormCreate(Sender: TObject);
   private
   public
@@ -59,6 +60,7 @@ begin
     HostEdit.Text := Profile.Host;
     PortEdit.Text := Profile.Port;
     UseSSLChk.Checked := Profile.UseSSL;
+    AutoConnectChk.Checked := Profile.AutoConnect;
 
     NicknameEdit.Text := Profile.NickNames;
     RealNameEdit.Text := Profile.RealName;
@@ -86,6 +88,7 @@ begin
       Profile.Host := HostEdit.Text;
       Profile.Port := PortEdit.Text;
       Profile.UseSSL := UseSSLChk.Checked;
+      Profile.AutoConnect := AutoConnectChk.Checked;
 
       Profile.NickNames := NicknameEdit.Text;
       Profile.RealName := RealNameEdit.Text;

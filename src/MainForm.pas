@@ -11,20 +11,17 @@ interface
 uses
   Classes, SysUtils, StrUtils, FileUtil, IpHtml, Forms, Controls, Graphics,
   {$ifdef windows}Windows,{$endif}
-  Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType, TypInfo,
-  base64,
-  mnMsgBox, GUIMsgBox, mnLogs, mnClasses, IRChatClasses,
+  Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType,
+  ActnList, TypInfo, mnMsgBox, GUIMsgBox, mnLogs, mnClasses, IRChatClasses,
   ChatRoomFrames, ServerForm, mnIRCClients;
 
 type
 
   { TuiIRCClient }
 
-  TuiIRCClient = class(TmnIRCClient)
+  TuiIRCChatClient = class(TIRCChatClient)
   private
-  public
-    Profile: TServerProfile;
-    procedure GetCurrentChannel(out vChannel: string); override;
+  protected
     procedure DoLog(S: string); override;
     procedure DoMyInfoChanged; override;
     procedure DoConnected; override;
@@ -34,54 +31,16 @@ type
     procedure DoUsersChanged(vChannelName: string; vChannel: TIRCChannel); override;
     procedure DoWhoIs(vUser: string); override;
     procedure DoReceive(vMsgType: TIRCMsgType; vChannel, vUser, vMsg: string); override;
-
-    procedure DoBeforeOpen; override;
-    procedure DoAfterOpen; override;
-  end;
-
-  { TuiServerProfile }
-
-  TuiServerProfile = class(TObject)
   public
-    Profile: TServerProfile;
-    procedure LoadProfile(FileName: string; AName: string);
-    procedure SaveProfile(FileName: string; AName: string);
-  end;
-
-  { TuiServerProfiles }
-
-  TuiServerProfiles = class(specialize TmnObjectList<TuiServerProfile>)
-  private
-  public
-    ProfileFileName: string;
-    function IndexOf(AName: string): Integer;
-    function Find(AName: string): TuiServerProfile;
-    procedure SaveProfiles;
-    procedure LoadProfiles;
-    procedure AddProfile(AProfile: TServerProfile);
-  end;
-
-  { TuiIRCClients }
-
-  TuiIRCClients = class(specialize TmnObjectList<TuiIRCClient>)
-  private
-    FActive: Boolean;
-  public
-    Profiles: TuiServerProfiles;
-    Current: TuiIRCClient;
-    constructor Create;
-    destructor Destroy; override;
-    function Find(AName: string): TuiIRCClient;
-    procedure Open(AName: string); overload;
-    procedure Open; overload;
-    procedure Close;
-    property Active: Boolean read FActive write FActive;
   end;
 
   { TMainFrm }
 
   TMainFrm = class(TForm)
+    ExitAct: TAction;
+    ActionList: TActionList;
     AddBtn: TButton;
+    ExitBtn: TButton;
     MenuItem2: TMenuItem;
     ShowMnu: TMenuItem;
     ExitMnu: TMenuItem;
@@ -90,9 +49,7 @@ type
     SendEdit: TMemo;
     TrayIcon: TTrayIcon;
     TrayPopupMenu: TPopupMenu;
-    WelcomeHtmlPnl: TIpHtmlPanel;
     OptionsBtn: TButton;
-    WelcomePnl: TPanel;
     StatusPnl: TPanel;
     ProfileCbo: TComboBox;
     Label6: TLabel;
@@ -110,7 +67,9 @@ type
     SmallImageList: TImageList;
     Splitter1: TSplitter;
     procedure AddBtnClick(Sender: TObject);
-    procedure ExitMnuClick(Sender: TObject);
+    procedure EditBtnClick(Sender: TObject);
+    procedure ExitActExecute(Sender: TObject);
+    procedure ExitBtnClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormWindowStateChange(Sender: TObject);
     procedure DeleteBtnClick(Sender: TObject);
@@ -121,7 +80,6 @@ type
     procedure MenuItem1Click(Sender: TObject);
     procedure MsgPageControlChange(Sender: TObject);
     procedure NicknameBtnClick(Sender: TObject);
-    procedure OptionsBtnClick(Sender: TObject);
     procedure PasswordEditChange(Sender: TObject);
     procedure ProfileCboSelect(Sender: TObject);
     procedure SendBtnClick(Sender: TObject);
@@ -130,21 +88,20 @@ type
     procedure TrayIconDblClick(Sender: TObject);
   private
     FDestroying: Boolean;
-    Body: TIpHtmlNodeBODY;
     Recents: TStringList;
     RecentsIndex: Integer;
-    procedure AddMessage(aMsg: string; AClassName: string);
     procedure ForceForegroundWindow;
     procedure HideApp;
     procedure RecentUp;
     procedure RecentDown;
     procedure AddRecent(S: string);
-    procedure LogMessage(S: string);
-    function CurrentRoom: string;
     procedure SendNow;
-    function NeedRoom(vRoomName: string; ActiveIt: Boolean = false): TChatRoomFrame;
+    function NeedRoom(vClient: TuiIRCChatClient; vRoomName: string; ActiveIt: Boolean = false): TChatRoomFrame;
     procedure SetNick(ANick: string);
     procedure ShowApp;
+
+    function CurrentChannelFrame: TChatRoomFrame;
+    function CurrentChannelName: string;
   public
     StartMinimized: Boolean;
     ShowTray: Boolean;
@@ -154,296 +111,75 @@ type
     procedure DeleteProfile(ProfileName: string);
     procedure EnumProfiles;
     procedure SaveConfig;
-    procedure DoReceive(vMsgType: TIRCMsgType; vChannel, vUser, vMsg: String);
-    procedure ReceiveNames(vChannel: string; vUserNames: TIRCChannel);
+
+    procedure LogMsg(S: string);
+    procedure IRCStatusChanged(Sender: TuiIRCChatClient);
+    procedure IRCLogMessage(Sender: TuiIRCChatClient; S: string);
+    procedure IRCReceive(Sender: TuiIRCChatClient; vMsgType: TIRCMsgType; vChannel, vUser, vMsg: String);
+    procedure IRCReceiveNames(Sender: TuiIRCChatClient; vChannel: string; vUserNames: TIRCChannel);
+
+  end;
+
+  { TuiIRCChatClients }
+
+  TuiIRCChatClients = class(TIRCChatClients)
+  public
+    function CreateClient: TIRCChatClient; override;
   end;
 
 var
   MainFrm: TMainFrm;
-  IRCClients: TuiIRCClients = nil;
+  IRCClients: TuiIRCChatClients = nil;
 
 implementation
 
 {$R *.lfm}
 
-{ TuiServerProfile }
+{ TuiIRCChatClients }
 
-procedure TuiServerProfile.SaveProfile(FileName: string; AName: string);
-var
-  ini: TIniFile;
+function TuiIRCChatClients.CreateClient: TIRCChatClient;
 begin
-  ini := TIniFile.Create(FileName);
-  try
-    Ini.WriteString(AName, 'Title', Profile.Title);
-    Ini.WriteString(AName, 'Username', Profile.Username);
-    Ini.WriteString(AName, 'Password', EncodeStringBase64(Profile.Password));
-    Ini.WriteString(AName, 'Nicknames', Profile.Nicknames);
-    Ini.WriteString(AName, 'RealName', Profile.RealName);
-    Ini.WriteString(AName, 'Rooms', Profile.Rooms);
-    Ini.WriteString(AName, 'Host', Profile.Host);
-    Ini.WriteString(AName, 'Port', Profile.Port);
-    Ini.WriteString(AName, 'AuthType', AuthToString(Profile.AuthType));
-    Ini.WriteString(AName, 'CustomAuth', Profile.CustomAuth);
-    Ini.WriteBool(AName, 'SSL', Profile.UseSSL);
-  finally
-    FreeAndNil(ini);
-  end;
+  Result := TuiIRCChatClient.Create;
 end;
 
-procedure TuiServerProfile.LoadProfile(FileName: string; AName: string);
-var
-  ini: TIniFile;
+{ TuiIRCChatClient }
+
+procedure TuiIRCChatClient.DoLog(S: string);
 begin
   inherited;
-  ini := TIniFile.Create(FileName);
-  try
-    Profile.Title := Ini.ReadString(AName, 'Title', '');
-    Profile.Username := Ini.ReadString(AName, 'Username', '');
-    Profile.Password := DecodeStringBase64(Ini.ReadString(AName, 'Password', ''));
-    Profile.Nicknames := Ini.ReadString(AName, 'Nicknames', '');
-    Profile.RealName := Ini.ReadString(AName, 'RealName', '');
-    Profile.Rooms := Ini.ReadString(AName, 'Rooms', '');
-    Profile.Host := Ini.ReadString(AName, 'Host', '');
-    Profile.Port := Ini.ReadString(AName, 'Port', '6667');
-    Profile.AuthType := StringToAuth(Ini.ReadString(AName, 'AuthType', ''));
-    Profile.CustomAuth := Ini.ReadString(AName, 'CustomAuth', '');
-    Profile.UseSSL := Ini.ReadBool(AName, 'SSL', false);
-  finally
-    FreeAndNil(ini);
-  end;
+  MainFrm.IRCLogMessage(Self, S);
 end;
 
-procedure TuiIRCClient.DoBeforeOpen;
+procedure TuiIRCChatClient.DoMyInfoChanged;
 begin
   inherited;
-  Host := Profile.Host;
-  Port := Profile.Port;
-  UseSSL := Profile.UseSSL;
-
-  Nicks.Clear;
-  Nicks.CommaText := Profile.NickNames;
-  if Profile.NickNames = '' then
-  begin
-    Nicks.Add(Profile.Username);
-    Nicks.Add(Profile.Username + '_');
-    Nicks.Add(Profile.Username + '__');
-  end;
-  RealName := Profile.RealName;
-  if RealName = '' then
-    RealName := Profile.Username;
-
-  AuthType := Profile.AuthType; //authPASS
-  //IRC.Auth := authIDENTIFY;
-  Username := Profile.Username;
-  Password := Profile.Password;
-
-end;
-procedure TuiIRCClient.DoAfterOpen;
-var
-  Room: string;
-  List: TStringList;
-begin
-  inherited;
-  List := TStringList.Create;
-  try
-    List.CommaText := Profile.Rooms;
-    for Room in List do
-    begin
-      Join(Room);
-      //Who(Room); //TODO
-    end;
-  finally
-    List.Free;
-  end;
+  MainFrm.IRCStatusChanged(Self);
 end;
 
-{ TuiIRCClients }
-
-constructor TuiIRCClients.Create;
-begin
-  inherited;
-  Profiles := TuiServerProfiles.Create;
-end;
-
-destructor TuiIRCClients.Destroy;
-begin
-  FreeAndNil(Profiles);
-  inherited;
-end;
-
-function TuiIRCClients.Find(AName: string): TuiIRCClient;
-var
-  i: Integer;
-begin
-  Result := nil;
-  for i := 0 to Count - 1 do
-  begin
-    if SameText(Self[i].Profile.Title, AName) then
-    begin
-      Result := Self[i];
-      break;
-    end;
-  end;
-end;
-
-procedure TuiIRCClients.Open(AName: string);
-var
-  aClient: TuiIRCClient;
-  i: Integer;
-begin
-  i := Profiles.IndexOf(AName);
-  if i >=0 then
-  begin
-    aClient := TuiIRCClient.Create;
-    Add(aClient);
-    aClient.Profile := Profiles[i].Profile;
-    aClient.Open;
-  end;
-end;
-
-function TuiServerProfiles.IndexOf(AName: string): Integer;
-var
-  i: Integer;
-begin
-  Result := -1;
-  for i := 0 to Count - 1 do
-  begin
-    if SameText(Self[i].Profile.Title, AName) then
-    begin
-      Result := i;
-      break;
-    end;
-  end;
-end;
-
-function TuiServerProfiles.Find(AName: string): TuiServerProfile;
-var
-  i: Integer;
-begin
-  Result := nil;
-  for i := 0 to Count - 1 do
-  begin
-    if SameText(Self[i].Profile.Title, AName) then
-    begin
-      Result := Self[i];
-      break;
-    end;
-  end;
-end;
-
-procedure TuiIRCClients.Open;
-var
-  itm: TuiServerProfile;
-  aClient: TuiIRCClient;
-begin
-  FActive := True;
-  for itm in Profiles do
-  begin
-    aClient := TuiIRCClient.Create;
-    Add(aClient);
-    aClient.Profile := itm.Profile;
-    aClient.Open;
-  end;
-end;
-
-procedure TuiIRCClients.Close;
-var
-  itm: TuiIRCClient;
-begin
-  for itm in Self do
-  begin
-    itm.Close;
-  end;
-  FActive := False;
-end;
-
-procedure TuiServerProfiles.SaveProfiles;
-var
-  itm: TuiServerProfile;
-begin
-  for itm in Self do
-  begin
-    itm.SaveProfile(ProfileFileName, itm.Profile.Title);
-  end;
-end;
-
-procedure TuiServerProfiles.LoadProfiles;
-var
-  ini: TIniFile;
-  Sections: TStringList;
-  s: string;
-  itm: TuiServerProfile;
-begin
-  ini := TIniFile.Create(ProfileFileName);
-  try
-    Sections := TStringList.Create;
-    ini.ReadSections(Sections);
-    for s in Sections do
-    begin
-      itm := TuiServerProfile.Create;
-      Add(itm);
-      itm.LoadProfile(ProfileFileName, s);
-    end;
-  finally
-    FreeAndNil(ini);
-  end;
-end;
-
-procedure TuiServerProfiles.AddProfile(AProfile: TServerProfile);
-var
-  itm: TuiServerProfile;
-begin
-  itm := TuiServerProfile.Create;
-  Add(itm);
-  itm.Profile := AProfile;
-  itm.SaveProfile(ProfileFileName, AProfile.Title);
-end;
-
-{ TuiIRCClient }
-
-procedure TuiIRCClient.GetCurrentChannel(out vChannel: string);
-begin
-  vChannel := MainFrm.CurrentRoom;
-end;
-
-procedure TuiIRCClient.DoLog(S: string);
-begin
-  inherited;
-  MainFrm.LogMessage(S);
-end;
-
-procedure TuiIRCClient.DoMyInfoChanged;
-begin
-  inherited;
-  MainFrm.SetNick(Session.Nick);
-end;
-
-procedure TuiIRCClient.DoConnected;
+procedure TuiIRCChatClient.DoConnected;
 begin
   inherited DoConnected;
-  MainFrm.LogMessage('Yes it is connected');
+  MainFrm.IRCLogMessage(Self, 'Yes it is connected');
 end;
 
-procedure TuiIRCClient.DoDisconnected;
+procedure TuiIRCChatClient.DoDisconnected;
 begin
-  MainFrm.LogMessage('Yes it is disconnected');
+  MainFrm.IRCLogMessage(Self, 'Yes it is disconnected');
   inherited;
 end;
 
-procedure TuiIRCClient.DoUserChanged(vChannel: string; vUser, vNewNick: string);
+procedure TuiIRCChatClient.DoUserChanged(vChannel: string; vUser, vNewNick: string);
 begin
   inherited;
   //TODO
 end;
 
-procedure TuiIRCClient.DoProgressChanged;
+procedure TuiIRCChatClient.DoProgressChanged;
 begin
   inherited;
   case Progress of
     prgDisconnected:
     begin
-      MainFrm.ChatPnl.Visible := False;
-      MainFrm.WelcomePnl.Visible := True;
       while MainFrm.MsgPageControl.PageCount > 0 do
         MainFrm.MsgPageControl.Page[0].Free;
     end;
@@ -451,8 +187,6 @@ begin
       //MainFrm.ConnectBtn.Caption := 'Connecting';
     prgConnected:
     begin
-      MainFrm.WelcomePnl.Visible := False;
-      MainFrm.ChatPnl.Visible := True;
       MainFrm.SendEdit.SetFocus;
     end;
     prgReady:
@@ -462,29 +196,30 @@ begin
   end;
 end;
 
-procedure TuiIRCClient.DoUsersChanged(vChannelName: string; vChannel: TIRCChannel);
+procedure TuiIRCChatClient.DoUsersChanged(vChannelName: string; vChannel: TIRCChannel);
 begin
   inherited;
-  MainFrm.ReceiveNames(vChannelName, vChannel);
+  MainFrm.IRCReceiveNames(Self, vChannelName, vChannel);
 end;
 
-procedure TuiIRCClient.DoWhoIs(vUser: string);
+procedure TuiIRCChatClient.DoWhoIs(vUser: string);
 var
   aUser: TIRCUser;
 begin
   inherited;
-  aUser := IRCClients.Current.Session.Channels.FindUser('', vUser);
+  aUser := Session.Channels.FindUser('', vUser);
   if aUser <> nil then
   begin
-    MainFrm.LogMessage(aUser.WhoIs.RealName);
-    MainFrm.LogMessage(aUser.WhoIs.Server);
-    MainFrm.LogMessage(aUser.WhoIs.Channels);
+  //TODO should in server page
+    MainFrm.IRCLogMessage(Self, aUser.WhoIs.RealName);
+    MainFrm.IRCLogMessage(Self, aUser.WhoIs.Server);
+    MainFrm.IRCLogMessage(Self, aUser.WhoIs.Channels);
   end;
 end;
 
-procedure TuiIRCClient.DoReceive(vMsgType: TIRCMsgType; vChannel, vUser, vMsg: string);
+procedure TuiIRCChatClient.DoReceive(vMsgType: TIRCMsgType; vChannel, vUser, vMsg: string);
 begin
-  MainFrm.DoReceive(vMsgType, vChannel, vUser, vMsg);
+  MainFrm.IRCReceive(Self, vMsgType, vChannel, vUser, vMsg);
 end;
 
 { TMainFrm }
@@ -531,10 +266,35 @@ begin
   end;
 end;
 
-procedure TMainFrm.ExitMnuClick(Sender: TObject);
+procedure TMainFrm.EditBtnClick(Sender: TObject);
+var
+  aProfile: TServerProfile;
+  itm: TuiServerProfile;
+begin
+  itm := IRCClients.Profiles.Find(ProfileCbo.Text);
+  if itm <> nil then
+  begin
+    aProfile := itm.Profile;
+    if ShowServerProfile(aProfile) then
+    begin
+      itm.Profile := aProfile;
+      DeleteProfile(ProfileCbo.Text);
+      itm.SaveProfile(IRCClients.Profiles.ProfileFileName, itm.Profile.Title);
+      EnumProfiles;
+      ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(itm.Profile.Title);
+    end;
+  end;
+end;
+
+procedure TMainFrm.ExitActExecute(Sender: TObject);
 begin
   FDestroying := True;
   Close;
+end;
+
+procedure TMainFrm.ExitBtnClick(Sender: TObject);
+begin
+
 end;
 
 procedure TMainFrm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
@@ -581,9 +341,12 @@ procedure TMainFrm.JoinBtnClick(Sender: TObject);
 var
   Rooms: string;
 begin
-  Rooms := '';
-  if MsgBox.Input(Rooms, 'Join Rooms') and (Rooms <> '') then
-    IRCClients.Current.Join(Rooms);
+  if CurrentChannelFrame <> nil then
+  begin
+    Rooms := '';
+    if MsgBox.Input(Rooms, 'Join Rooms') and (Rooms <> '') then
+      CurrentChannelFrame.IRCClient.Join(Rooms);
+  end;
 end;
 
 procedure TMainFrm.MenuItem1Click(Sender: TObject);
@@ -593,36 +356,22 @@ end;
 
 procedure TMainFrm.MsgPageControlChange(Sender: TObject);
 begin
-
+  if CurrentChannelFrame <> nil then
+  begin
+    NicknameBtn.Caption := CurrentChannelFrame.IRCClient.Session.Nick;
+  end;
 end;
 
 procedure TMainFrm.NicknameBtnClick(Sender: TObject);
 var
   aNick: string;
 begin
-  aNick := IRCClients.Current.Session.Nick;
-  if MsgBox.Input(aNick, 'New Nickname?') then
+  if CurrentChannelFrame <> nil then
   begin
-    IRCClients.Current.SetNick(aNick);
-  end;
-end;
-
-procedure TMainFrm.OptionsBtnClick(Sender: TObject);
-var
-  aProfile: TServerProfile;
-  itm: TuiServerProfile;
-begin
-  itm := IRCClients.Profiles.Find(ProfileCbo.Text);
-  if itm <> nil then
-  begin
-    aProfile := itm.Profile;
-    if ShowServerProfile(aProfile) then
+    aNick := CurrentChannelFrame.IRCClient.Session.Nick;
+    if MsgBox.Input(aNick, 'New Nickname?') then
     begin
-      itm.Profile := aProfile;
-      DeleteProfile(ProfileCbo.Text);
-      itm.SaveProfile(IRCClients.Profiles.ProfileFileName, itm.Profile.Title);
-      EnumProfiles;
-      ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(itm.Profile.Title);
+      CurrentChannelFrame.IRCClient.SetNick(aNick);
     end;
   end;
 end;
@@ -677,22 +426,25 @@ procedure TMainFrm.SendNow;
 var
   s: string;
 begin
-  s := TrimRight(SendEdit.Text);
-  if s <> '' then
-    if IRCClients.Current.Online then
-    begin
-      IRCClients.Current.SendMsg(CurrentRoom, SendEdit.Text);
-      AddRecent(SendEdit.Text);
-      SendEdit.Text := '';
-    end;
+  if CurrentChannelFrame <> nil then
+  begin
+    s := TrimRight(SendEdit.Text);
+    if s <> '' then
+      if CurrentChannelFrame.SendMessage(s) then
+      begin
+        AddRecent(SendEdit.Text);
+        SendEdit.Text := '';
+      end;
+  end;
 end;
 
-function TMainFrm.NeedRoom(vRoomName: string; ActiveIt: Boolean): TChatRoomFrame;
+function TMainFrm.NeedRoom(vClient: TuiIRCChatClient; vRoomName: string; ActiveIt: Boolean): TChatRoomFrame;
 var
   i, Index: Integer;
   TabSheet: TTabSheet;
   ARoomName: string;
-  AIsRoom: Boolean;
+  AIsChannel: Boolean;
+  aChatFrame: TChatRoomFrame;
 begin
   if vRoomName = '*' then
     vRoomName := '';
@@ -701,15 +453,16 @@ begin
   if LeftStr(ARoomName, 1) = '#' then
   begin
     ARoomName := MidStr(ARoomName, 2, MaxInt);
-    AIsRoom := True;
+    AIsChannel := True;
   end
   else
-    AIsRoom := False;
+    AIsChannel := False;
 
   index := -1;
   for i := 0 to MsgPageControl.PageCount - 1 do
   begin
-    if SameText((MsgPageControl.Pages[i].Controls[0] as TChatRoomFrame).RoomName, vRoomName) then
+    aChatFrame := (MsgPageControl.Pages[i].Controls[0] as TChatRoomFrame);
+    if (aChatFrame.IRCClient = vClient) and SameText(aChatFrame.ChannelName, vRoomName) then
     begin
       Index := i;
       break;
@@ -721,10 +474,11 @@ begin
     TabSheet := MsgPageControl.AddTabSheet;
     with TChatRoomFrame.CreateParented(TabSheet.Handle) do
     begin
+      IRCClient := vClient;
       Parent := TabSheet;
       Align := alClient;
-      RoomName := vRoomName;
-      IsRoom := AIsRoom;
+      ChannelName := vRoomName;
+      IsChannel := AIsChannel;
       Visible := True;
     end;
     ActiveIt := True; //force to focus it
@@ -799,16 +553,29 @@ begin
   RecentsIndex := 0;
 end;
 
-procedure TMainFrm.LogMessage(S: string);
+procedure TMainFrm.IRCLogMessage(Sender: TuiIRCChatClient; S: string);
 begin
-  LogEdit.Lines.Add(S)
+  LogMsg(S);
 end;
 
-function TMainFrm.CurrentRoom: string;
+function TMainFrm.CurrentChannelFrame: TChatRoomFrame;
 begin
   if MsgPageControl.ActivePage <> nil then
   begin
-    Result := (MsgPageControl.ActivePage.Controls[0] as TChatRoomFrame).RoomName;
+    if (MsgPageControl.ActivePage.Controls[0] is TChatRoomFrame) then
+      Result := (MsgPageControl.ActivePage.Controls[0] as TChatRoomFrame)
+    else
+      Result := nil;
+  end
+  else
+    Result := nil;
+end;
+
+function TMainFrm.CurrentChannelName: string;
+begin
+  if MsgPageControl.ActivePage <> nil then
+  begin
+    Result := (MsgPageControl.ActivePage.Controls[0] as TChatRoomFrame).ChannelName;
   end
   else
     Result := '';
@@ -819,17 +586,16 @@ var
   i: Integer;
   ini: TIniFile;
   aProfile: string;
-  aStream: TStream;
+  //aStream: TStream;
 begin
   inherited;
   InstallFileLog('log.txt');
-  InstallEventLog(@LogMessage);
+  InstallEventLog(@LogMsg);
   {$ifdef DEBUG}
   InstallConsoleLog;
   InstallDebugOutputLog;
   {$endif}
   {$macro on}
-  WelcomePnl.Align := alClient;
   ChatPnl.Align := alClient;
   Caption := Caption + ' ' + IntToStr(FPC_FULLVERSION);
   Recents := TStringList.Create;
@@ -842,7 +608,7 @@ begin
   finally
     FreeAndNil(ini);
   end;
-  IRCClients := TuiIRCClients.Create;
+  IRCClients := TuiIRCChatClients.Create;
   IRCClients.Profiles.ProfileFileName := Application.Location + 'profiles.ini';
   MsgPageControl.ActivePageIndex := 0;
   LogEdit.Clear;
@@ -852,6 +618,7 @@ begin
   if i < 0 then
     i := 0;
   ProfileCbo.ItemIndex := i;
+{
   aStream := CreateChatHTMLStream;
   try
     WelcomeHtmlPnl.SetHtmlFromStream(aStream);
@@ -867,7 +634,7 @@ begin
       Body := TIpHtmlNodeBODY(WelcomeHtmlPnl.MasterFrame.Html.HtmlNode.ChildNode[i]);
       break;
     end;
-  //AddMessage('Welcome to irc, click connect', 'action');
+}
   if StartMinimized then
     HideApp
   else if ShowTray then
@@ -916,7 +683,6 @@ begin
     i := 0;
 
   ProfileCbo.ItemIndex := i;
-
 end;
 
 procedure TMainFrm.SaveConfig;
@@ -937,138 +703,88 @@ begin
   end;
 end;
 
-procedure TMainFrm.DoReceive(vMsgType: TIRCMsgType; vChannel, vUser, vMsg: String);
-var
-  ChatRoom: TChatRoomFrame;
-  aItem: TListItem;
-  oUser: TIRCUser;
+procedure TMainFrm.LogMsg(S: string);
 begin
-  if vChannel = '' then
-    LogMessage(vMSG)
-  else
-  begin
-    ChatRoom := NeedRoom(vChannel);
-    if ChatRoom <> nil then
-      with ChatRoom do
-        begin
-          case vMsgType of
-            mtWelcome:
-            begin
-              AddMessage(vMSG);
-              TopicEdit.Text := vMSG;
-            end;
-            mtMOTD:
-              AddMessage(vMSG);
-            mtTopic:
-            begin
-              TopicEdit.Text := vMSG;
-              AddMessage(vMSG, '', True);
-            end;
-            mtJoin:
-            begin
-              AddMessage(vUser + ' is joined', 'hint');
-              aItem := UserListBox.Items.FindCaption(0, vUser, False, True, False, False);
-              if aItem = nil then
-              begin
-                aItem := UserListBox.Items.Add;
-                aItem.Caption := vUser;
-                oUser := IRCClients.Current.Session.Channels.FindUser(vChannel, vUser);
-                if oUser <> nil then
-                begin
-                  if ([umAdmin, umOwner] * oUser.Mode <> []) then
-                    aItem.ImageIndex := 3
-                  else if ([umHalfOp, umOp, umWallOp] * oUser.Mode <> []) then
-                    aItem.ImageIndex := 2
-                  else if ([umVoice] * oUser.Mode <> []) then
-                    aItem.ImageIndex := 1
-                  else
-                    aItem.ImageIndex := 0;
-                end;
-              end;
-            end;
-            mtLeft:
-            begin
-              //if me close the tab
-              AddMessage(vUser + ' is left: ' + vMsg, 'hint');
-              aItem := UserListBox.Items.FindCaption(0, vUser, False, True, False, False);
-              if aItem <> nil then
-                UserListBox.items.Delete(aItem.Index);
-            end;
-            mtUserMode:
-            begin
-              aItem := UserListBox.Items.FindCaption(0, vUser, False, True, False, False);
-              if aItem = nil then
-              begin
-                aItem := UserListBox.Items.Add;
-                aItem.Caption := vUser;
-                aItem.ImageIndex := 0;
-              end;
-              oUser := IRCClients.Current.Session.Channels.FindUser(vChannel, vUser);
-              if oUser <> nil then
-              begin
-                if ([umAdmin, umOwner] * oUser.Mode <> []) then
-                  aItem.ImageIndex := 3
-                else if ([umHalfOp, umOp, umWallOp] * oUser.Mode <> []) then
-                  aItem.ImageIndex := 2
-                else if ([umVoice] * oUser.Mode <> []) then
-                  aItem.ImageIndex := 1
-                else
-                  aItem.ImageIndex := 0;
-              end;
-            end;
-            mtNotice:
-              AddMessage('[' + vUser + '] ' + vMSG, 'notice');
-            mtMessage:
-            begin
-              AddMessage(vUser + ': ' + vMSG, ' received');
-            end;
-            mtSend:
-            begin
-              AddMessage(vUser + ': ' + vMSG, 'self');
-            end;
-            mtAction:
-            begin
-              AddMessage('* ' + vUser + ': -' + vMSG + '-', 'action');
-            end;
-          else
-              AddMessage(vUser + ': ' + vMSG, 'log');
-          end;
-        end;
-   end;
+  LogEdit.Lines.Add(S)
 end;
 
-procedure TMainFrm.ReceiveNames(vChannel: string; vUserNames: TIRCChannel);
-var
-  oUser: TIRCUser;
-  ChatRoom: TChatRoomFrame;
-  aItem: TListItem;
-  i: Integer;
+procedure TMainFrm.IRCStatusChanged(Sender: TuiIRCChatClient);
 begin
-  ChatRoom := NeedRoom(vChannel);
-  if ChatRoom <> nil then
-    with ChatRoom do
+  if CurrentChannelFrame <> nil then
   begin
-    UserListBox.Clear;
-    for i := 0 to vUserNames.Count -1 do
-    begin
-      aItem := UserListBox.Items.Add;
-      aItem.Caption := vUserNames[i].Name;
-      oUser := vUserNames[i];
-      if oUser <> nil then
-      begin
-        if ([umAdmin, umOwner] * oUser.Mode <> []) then
-          aItem.ImageIndex := 3
-        else if ([umHalfOp, umOp, umWallOp] * oUser.Mode <> []) then
-          aItem.ImageIndex := 2
-        else if ([umVoice] * oUser.Mode <> []) then
-          aItem.ImageIndex := 1
-        else
-          aItem.ImageIndex := 0;
-      end;
-    end;
+    NicknameBtn.Caption := CurrentChannelFrame.IRCClient.Session.Nick;
   end;
 end;
 
+procedure TMainFrm.IRCReceive(Sender: TuiIRCChatClient; vMsgType: TIRCMsgType; vChannel, vUser, vMsg: String);
+var
+  ChatFrame: TChatRoomFrame;
+begin
+  if vChannel = '' then
+    IRCLogMessage(Sender, vMSG)
+  else
+  begin
+    ChatFrame := NeedRoom(Sender, vChannel);
+    if ChatFrame <> nil then
+      begin
+        case vMsgType of
+          mtWelcome:
+          begin
+            ChatFrame.AddMessage(vMSG);
+            ChatFrame.SetTopic(vMSG);
+          end;
+          mtMOTD:
+            ChatFrame.AddMessage(vMSG, '');
+          mtTopic:
+          begin
+            ChatFrame.AddMessage('Topic:  ' + vMSG, '', True);
+            ChatFrame.SetTopic(vMSG);
+          end;
+          mtJoin:
+          begin
+            ChatFrame.AddMessage(vUser + ' is joined', 'hint');
+            ChatFrame.UserJoin(vUser);
+          end;
+          mtLeft:
+          begin
+            //if me close the tab
+            ChatFrame.AddMessage(vUser + ' is left: ' + vMsg, 'hint');
+            ChatFrame.UserLeft(vUser);
+          end;
+          mtUserMode:
+          begin
+            ChatFrame.UserModeChanged(vUser);
+          end;
+          mtNotice:
+            ChatFrame.AddMessage('[' + vUser + '] ' + vMSG, 'notice');
+          mtMessage:
+          begin
+            ChatFrame.AddMessage(vUser + ': ' + vMSG, ' received');
+          end;
+          mtSend:
+          begin
+            ChatFrame.AddMessage(vUser + ': ' + vMSG, 'self');
+          end;
+          mtAction:
+          begin
+            ChatFrame.AddMessage('* ' + vUser + ': -' + vMSG + '-', 'action');
+          end;
+        else
+            ChatFrame.AddMessage(vUser + ': ' + vMSG, 'log');
+        end;
+      end;
+   end;
+end;
+
+procedure TMainFrm.IRCReceiveNames(Sender: TuiIRCChatClient; vChannel: string; vUserNames: TIRCChannel);
+var
+  ChatFrame: TChatRoomFrame;
+begin
+  ChatFrame := NeedRoom(Sender, vChannel);
+  ChatFrame.ReceiveNames(vUserNames);
+end;
+
+(*
 procedure TMainFrm.AddMessage(aMsg: string; AClassName: string);
 var
   TextNode: TIpHtmlNodeText;
@@ -1088,7 +804,7 @@ begin
 
   WelcomeHtmlPnl.Update;
   WelcomeHtmlPnl.Scroll(hsaEnd);
-end;
+end; *)
 
 procedure TMainFrm.ForceForegroundWindow;
 {$ifdef windows}

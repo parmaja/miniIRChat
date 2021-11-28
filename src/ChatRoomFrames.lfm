@@ -17,16 +17,16 @@ object ChatRoomFrame: TChatRoomFrame
   DesignTop = 291
   object Splitter2: TSplitter
     Left = 403
-    Height = 300
-    Top = 29
+    Height = 268
+    Top = 61
     Width = 6
     Align = alRight
     ResizeAnchor = akRight
   end
   object UserListBox: TListView
     Left = 412
-    Height = 294
-    Top = 32
+    Height = 262
+    Top = 64
     Width = 138
     Align = alRight
     AutoWidthLastColumn = True
@@ -43,12 +43,13 @@ object ChatRoomFrame: TChatRoomFrame
     SmallImages = MainFrm.SmallImageList
     SortType = stText
     TabOrder = 1
+    Visible = False
     ViewStyle = vsReport
   end
   object Panel1: TPanel
     Left = 0
     Height = 29
-    Top = 0
+    Top = 32
     Width = 553
     Align = alTop
     AutoSize = True
@@ -77,6 +78,16 @@ object ChatRoomFrame: TChatRoomFrame
       OnClick = ChangeTopicBtnClick
       TabOrder = 1
     end
+  end
+  object AdminPnl: TPanel
+    Left = 0
+    Height = 32
+    Top = 0
+    Width = 553
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 3
+    Visible = False
   end
   object UsersPopupMenu: TPopupMenu
     Left = 441

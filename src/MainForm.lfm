@@ -20,8 +20,8 @@ object MainFrm: TMainFrm
   object Splitter1: TSplitter
     Cursor = crVSplit
     Left = 0
-    Height = 6
-    Top = 261
+    Height = 5
+    Top = 262
     Width = 848
     Align = alBottom
     ResizeAnchor = akBottom
@@ -41,23 +41,25 @@ object MainFrm: TMainFrm
     ClientWidth = 848
     TabOrder = 0
     object ConnectBtn: TButton
-      Left = 672
+      Left = 671
       Height = 26
       Top = 3
-      Width = 85
+      Width = 73
       Align = alRight
       Anchors = [akTop, akRight]
+      AutoSize = True
       Caption = '&Connect'
       OnClick = ConnectBtnClick
       TabOrder = 5
     end
     object JoinBtn: TButton
-      Left = 760
+      Left = 747
       Height = 26
       Top = 3
-      Width = 85
+      Width = 49
       Align = alRight
       Anchors = [akTop, akRight]
+      AutoSize = True
       Caption = '&Join'
       OnClick = JoinBtnClick
       TabOrder = 6
@@ -77,8 +79,9 @@ object MainFrm: TMainFrm
       Left = 212
       Height = 26
       Top = 3
-      Width = 75
+      Width = 50
       Align = alLeft
+      AutoSize = True
       Caption = '&Add'
       OnClick = AddBtnClick
       TabOrder = 1
@@ -95,34 +98,48 @@ object MainFrm: TMainFrm
       Layout = tlCenter
     end
     object DeleteBtn: TButton
-      Left = 368
+      Left = 316
       Height = 26
       Top = 3
-      Width = 75
+      Width = 63
       Align = alLeft
+      AutoSize = True
       Caption = '&Delete'
       OnClick = DeleteBtnClick
       TabOrder = 2
     end
     object OptionsBtn: TButton
-      Left = 446
+      Left = 382
       Height = 26
       Top = 3
-      Width = 75
+      Width = 72
       Align = alLeft
+      AutoSize = True
       Caption = '&Options'
-      OnClick = OptionsBtnClick
       TabOrder = 4
     end
     object EditBtn: TButton
-      Left = 290
+      Left = 265
       Height = 26
       Top = 3
-      Width = 75
+      Width = 48
       Align = alLeft
+      AutoSize = True
       Caption = '&Edit'
-      OnClick = OptionsBtnClick
+      OnClick = EditBtnClick
       TabOrder = 3
+    end
+    object ExitBtn: TButton
+      Left = 799
+      Height = 26
+      Top = 3
+      Width = 46
+      Action = ExitAct
+      Align = alRight
+      Anchors = [akTop, akRight]
+      AutoSize = True
+      OnClick = ExitBtnClick
+      TabOrder = 7
     end
   end
   object LogEdit: TMemo
@@ -147,20 +164,19 @@ object MainFrm: TMainFrm
   end
   object ChatPnl: TPanel
     Left = 0
-    Height = 229
+    Height = 230
     Top = 32
-    Width = 362
-    Align = alLeft
+    Width = 848
+    Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 229
-    ClientWidth = 362
+    ClientHeight = 230
+    ClientWidth = 848
     TabOrder = 3
-    Visible = False
     object MsgPageControl: TPageControl
       Left = 2
-      Height = 195
+      Height = 196
       Top = 2
-      Width = 358
+      Width = 844
       Align = alClient
       BorderSpacing.Around = 2
       TabOrder = 0
@@ -169,16 +185,16 @@ object MainFrm: TMainFrm
     object SendPnl: TPanel
       Left = 2
       Height = 28
-      Top = 199
-      Width = 358
+      Top = 200
+      Width = 844
       Align = alBottom
       BorderSpacing.Around = 2
       BevelOuter = bvNone
       ClientHeight = 28
-      ClientWidth = 358
+      ClientWidth = 844
       TabOrder = 1
       object SendBtn: TButton
-        Left = 303
+        Left = 789
         Height = 28
         Top = 0
         Width = 55
@@ -204,43 +220,12 @@ object MainFrm: TMainFrm
         Left = 61
         Height = 28
         Top = 0
-        Width = 242
+        Width = 728
         Align = alClient
         Anchors = [akLeft, akRight, akBottom]
         OnKeyDown = SendEditKeyDown
         TabOrder = 2
       end
-    end
-  end
-  object WelcomePnl: TPanel
-    Left = 362
-    Height = 229
-    Top = 32
-    Width = 486
-    Align = alClient
-    BevelOuter = bvNone
-    ClientHeight = 229
-    ClientWidth = 486
-    TabOrder = 5
-    object WelcomeHtmlPnl: TIpHtmlPanel
-      Left = 0
-      Height = 229
-      Top = 0
-      Width = 486
-      Align = alClient
-      FixedTypeface = 'Courier New'
-      DefaultTypeFace = 'default'
-      DefaultFontSize = 12
-      FlagErrors = False
-      PrintSettings.MarginLeft = 0.5
-      PrintSettings.MarginTop = 0.5
-      PrintSettings.MarginRight = 0.5
-      PrintSettings.MarginBottom = 0.5
-      PrintSettings.Preview.Left = 480
-      PrintSettings.Preview.Top = 270
-      PrintSettings.Preview.Width = 1440
-      PrintSettings.Preview.Height = 810
-      TabOrder = 0
     end
   end
   object StatusPnl: TPanel
@@ -261,8 +246,8 @@ object MainFrm: TMainFrm
     end
   end
   object SmallImageList: TImageList
-    Left = 180
-    Top = 156
+    Left = 176
+    Top = 160
     Bitmap = {
       4C7A040000001000000010000000370100000000000078DAED965D1284200880
       F74A9EC963F4D0453C93576243A550516CAB691F648675FDF9400BA4CFE71959
@@ -700,8 +685,15 @@ object MainFrm: TMainFrm
       Caption = '-'
     end
     object ExitMnu: TMenuItem
-      Caption = 'Exit'
-      OnClick = ExitMnuClick
+      Action = ExitAct
+    end
+  end
+  object ActionList: TActionList
+    Left = 480
+    Top = 138
+    object ExitAct: TAction
+      Caption = 'E&xit'
+      OnExecute = ExitActExecute
     end
   end
 end

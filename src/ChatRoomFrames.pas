@@ -26,6 +26,7 @@ type
   TChatRoomFrame = class(TFrame)
     ChangeTopicBtn: TButton;
     MenuItem1: TMenuItem;
+    AdminPnl: TPanel;
     SaveAsHtmlMnu: TMenuItem;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
@@ -54,18 +55,21 @@ type
     {$endif}
   public
     IRCClient: TmnIRCClient;
-    RoomName: string;
-    IsRoom: Boolean;
+    ChannelName: string;
+    IsChannel: Boolean;
     constructor Create(TheOwner: TComponent); override;
     procedure AddMessage(aMsg: string; AClassName: string = ''; IsHeader: Boolean = False);
+    procedure SetTopic(Topic: string);
+    procedure UserJoin(UserName: string);
+    procedure UserLeft(UserName: string);
+    procedure UserModeChanged(UserName: string);
+    procedure ReceiveNames(vUserNames: TIRCChannel);
+    function SendMessage(vMsg: string): Boolean;
   end;
 
 function CreateChatHTMLStream: TStream;
 
 implementation
-
-uses
-  MainForm;
 
 function CreateChatHTMLStream: TStream;
 begin
@@ -82,7 +86,7 @@ var
 begin
   aUser := GetCurrentUser;
   if aUser <> '' then
-    IRCClients.Current.OpUser(RoomName, aUser);
+    IRCClient.OpUser(ChannelName, aUser);
 end;
 
 procedure TChatRoomFrame.MenuItem1Click(Sender: TObject);
@@ -91,7 +95,7 @@ var
 begin
   aUser := GetCurrentUser;
   if aUser <> '' then
-    IRCClients.Current.OpUser(RoomName, aUser);
+    IRCClient.OpUser(ChannelName, aUser);
 end;
 
 procedure TChatRoomFrame.SaveAsHtmlMnuClick(Sender: TObject);
@@ -104,7 +108,7 @@ var
 begin
   aUser := GetCurrentUser;
   if aUser <> '' then
-    IRCClients.Current.WhoIs(aUser);
+    IRCClient.WhoIs(aUser);
 end;
 
 function TChatRoomFrame.GetCurrentUser: string;
@@ -231,6 +235,109 @@ begin
   MsgEdit.CaretY := MsgEdit.Lines.Count;
   //MsgEdit.ScrollBy(0, 1);
   {$endif}
+end;
+
+procedure TChatRoomFrame.SetTopic(Topic: string);
+begin
+  TopicEdit.Text := Topic;
+end;
+
+procedure TChatRoomFrame.UserJoin(UserName: string);
+var
+  aItem: TListItem;
+  oUser: TIRCUser;
+begin
+  aItem := UserListBox.Items.FindCaption(0, UserName, False, True, False, False);
+  if aItem = nil then
+  begin
+    aItem := UserListBox.Items.Add;
+    aItem.Caption := UserName;
+    oUser := IRCClient.Session.Channels.FindUser(ChannelName, UserName);
+    if oUser <> nil then
+    begin
+      if ([umAdmin, umOwner] * oUser.Mode <> []) then
+        aItem.ImageIndex := 3
+      else if ([umHalfOp, umOp, umWallOp] * oUser.Mode <> []) then
+        aItem.ImageIndex := 2
+      else if ([umVoice] * oUser.Mode <> []) then
+        aItem.ImageIndex := 1
+      else
+        aItem.ImageIndex := 0;
+    end;
+  end;
+end;
+
+procedure TChatRoomFrame.UserLeft(UserName: string);
+var
+  aItem: TListItem;
+begin
+  aItem := UserListBox.Items.FindCaption(0, UserName, False, True, False, False);
+  if aItem <> nil then
+    UserListBox.items.Delete(aItem.Index);
+end;
+
+procedure TChatRoomFrame.ReceiveNames(vUserNames: TIRCChannel);
+var
+  oUser: TIRCUser;
+  aItem: TListItem;
+  i: Integer;
+begin
+  UserListBox.Visible := True;
+  UserListBox.Clear;
+  for i := 0 to vUserNames.Count -1 do
+  begin
+    aItem := UserListBox.Items.Add;
+    aItem.Caption := vUserNames[i].Name;
+    oUser := vUserNames[i];
+    if oUser <> nil then
+    begin
+      if ([umAdmin, umOwner] * oUser.Mode <> []) then
+        aItem.ImageIndex := 3
+      else if ([umHalfOp, umOp, umWallOp] * oUser.Mode <> []) then
+        aItem.ImageIndex := 2
+      else if ([umVoice] * oUser.Mode <> []) then
+        aItem.ImageIndex := 1
+      else
+        aItem.ImageIndex := 0;
+    end;
+  end;
+end;
+
+function TChatRoomFrame.SendMessage(vMsg: string): Boolean;
+begin
+  if IRCClient.Online then
+  begin
+    IRCClient.SendMsg(ChannelName, vMsg);
+    Result := True;
+  end
+  else
+    Result :=False;
+end;
+
+procedure TChatRoomFrame.UserModeChanged(UserName: string);
+var
+  aItem: TListItem;
+  oUser: TIRCUser;
+begin
+  aItem := UserListBox.Items.FindCaption(0, UserName, False, True, False, False);
+  if aItem = nil then
+  begin
+    aItem := UserListBox.Items.Add;
+    aItem.Caption := UserName;
+    aItem.ImageIndex := 0;
+  end;
+  oUser := IRCClient.Session.Channels.FindUser(ChannelName, UserName);
+  if oUser <> nil then
+  begin
+    if ([umAdmin, umOwner] * oUser.Mode <> []) then
+      aItem.ImageIndex := 3
+    else if ([umHalfOp, umOp, umWallOp] * oUser.Mode <> []) then
+      aItem.ImageIndex := 2
+    else if ([umVoice] * oUser.Mode <> []) then
+      aItem.ImageIndex := 1
+    else
+      aItem.ImageIndex := 0;
+  end;
 end;
 
 end.

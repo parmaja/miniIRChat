@@ -1,11 +1,11 @@
 object ServerForm: TServerForm
   Left = 482
-  Height = 378
+  Height = 402
   Top = 323
   Width = 302
   BorderStyle = bsDialog
   Caption = 'Server Profile'
-  ClientHeight = 378
+  ClientHeight = 402
   ClientWidth = 302
   OnCreate = FormCreate
   Position = poMainFormCenter
@@ -113,7 +113,7 @@ object ServerForm: TServerForm
   object Button1: TButton
     Left = 8
     Height = 25
-    Top = 344
+    Top = 368
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
@@ -124,7 +124,7 @@ object ServerForm: TServerForm
   object Button2: TButton
     Left = 86
     Height = 25
-    Top = 344
+    Top = 368
     Width = 75
     Anchors = [akLeft, akBottom]
     Cancel = True
@@ -195,5 +195,14 @@ object ServerForm: TServerForm
     Width = 287
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 8
+  end
+  object AutoConnectChk: TCheckBox
+    Left = 8
+    Height = 19
+    Top = 342
+    Width = 94
+    Anchors = [akTop, akRight]
+    Caption = 'Auto Connect'
+    TabOrder = 13
   end
 end

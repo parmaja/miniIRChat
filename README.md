@@ -54,3 +54,9 @@ Open each package in Lazarus and compile it in order.
 ### Testing and Use
 
 My prefered IRC server is [ergo](https://github.com/ergochat/ergo/).
+
+
+### Competitions
+
+https://hexchat.github.io/
+https://konversation.kde.org/
