@@ -12,8 +12,8 @@ uses
   Classes, SysUtils, StrUtils, FileUtil, IpHtml, Forms, Controls, Graphics,
   {$ifdef windows}Windows,{$endif}
   Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType,
-  ActnList, TypInfo, mnMsgBox, GUIMsgBox, mnLogs, mnClasses, IRChatClasses,
-  ChatRoomFrames, ServerForm, mnIRCClients;
+  ActnList, TypInfo, mnMsgBox, GUIMsgBox, ntvPanels, mnLogs, mnClasses,
+  IRChatClasses, ChatRoomFrames, ServerForm, mnIRCClients;
 
 type
 
@@ -37,36 +37,38 @@ type
   { TMainFrm }
 
   TMainFrm = class(TForm)
+    ChatPnl: TPanel;
+    ConnectBtn1: TButton;
     ExitAct: TAction;
     ActionList: TActionList;
     AddBtn: TButton;
     ExitBtn: TButton;
+    LogEdit: TMemo;
     MenuItem2: TMenuItem;
+    MsgPageControl: TPageControl;
+    NicknameBtn: TButton;
+    LogPnl: TntvPanel;
+    SendBtn: TButton;
+    SendEdit: TMemo;
+    SendPnl: TPanel;
     ShowMnu: TMenuItem;
     ExitMnu: TMenuItem;
     DeleteBtn: TButton;
     EditBtn: TButton;
-    SendEdit: TMemo;
+    StatusPnl: TPanel;
     TrayIcon: TTrayIcon;
     TrayPopupMenu: TPopupMenu;
     OptionsBtn: TButton;
-    StatusPnl: TPanel;
     ProfileCbo: TComboBox;
     Label6: TLabel;
     ConnectBtn: TButton;
     JoinBtn: TButton;
-    MsgPageControl: TPageControl;
-    NicknameBtn: TButton;
-    SendPnl: TPanel;
-    ChatPnl: TPanel;
-    LogEdit: TMemo;
     MenuItem1: TMenuItem;
     LogPopupMenu: TPopupMenu;
     Panel2: TPanel;
-    SendBtn: TButton;
     SmallImageList: TImageList;
-    Splitter1: TSplitter;
     procedure AddBtnClick(Sender: TObject);
+    procedure ConnectBtn1Click(Sender: TObject);
     procedure EditBtnClick(Sender: TObject);
     procedure ExitActExecute(Sender: TObject);
     procedure ExitBtnClick(Sender: TObject);
@@ -240,6 +242,9 @@ end;
 
 procedure TMainFrm.FormCreate(Sender: TObject);
 begin
+  {$ifdef D+}
+  LogPnl.Visible := true;
+  {$endif}
 end;
 
 procedure TMainFrm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -264,6 +269,11 @@ begin
     EnumProfiles;
     ProfileCbo.ItemIndex := ProfileCbo.Items.IndexOf(Profile.Title);
   end;
+end;
+
+procedure TMainFrm.ConnectBtn1Click(Sender: TObject);
+begin
+  IRCClients.Open(ProfileCbo.Text);
 end;
 
 procedure TMainFrm.EditBtnClick(Sender: TObject);
@@ -734,7 +744,7 @@ begin
             ChatFrame.SetTopic(vMSG);
           end;
           mtMOTD:
-            ChatFrame.AddMessage(vMSG, '');
+            ChatFrame.AddMessage(vMSG, 'code');
           mtTopic:
           begin
             ChatFrame.AddMessage('Topic:  ' + vMSG, '', True);

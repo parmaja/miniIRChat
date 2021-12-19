@@ -11,13 +11,13 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, ComCtrls, Menus, Graphics,
-  LCLType,
+  LCLType, PairSplitter,
   {$ifdef use_webbrowser}
   IpHtml,
   //HtmlView, HTMLSubs,
   {$endif}
   SynEdit, SynHighlighterMulti,
-  mnIRCClients;
+  mnIRCClients, ntvPanels;
 
 type
 
@@ -27,16 +27,16 @@ type
     ChangeTopicBtn: TButton;
     MenuItem1: TMenuItem;
     AdminPnl: TPanel;
+    UsersPnl: TntvPanel;
     SaveAsHtmlMnu: TMenuItem;
     Panel1: TPanel;
     PopupMenu1: TPopupMenu;
     TopicEdit: TEdit;
+    UserListBox: TListView;
     WhoIsMnu: TMenuItem;
     OpMnu: TMenuItem;
     MenuItem2: TMenuItem;
     UsersPopupMenu: TPopupMenu;
-    Splitter2: TSplitter;
-    UserListBox: TListView;
     procedure ChangeTopicBtnClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure OpMnuClick(Sender: TObject);
@@ -114,7 +114,7 @@ end;
 function TChatRoomFrame.GetCurrentUser: string;
 begin
   Result := '';
-  if UserListBox.Items.Count >0 then
+  if UserListBox.Items.Count > 0 then
   begin
     Result := UserListBox.Selected.Caption;
   end;
@@ -175,6 +175,8 @@ begin
   //Viewer.LoadFromFile(Application.Location + 'chat.html');
   aStream:= CreateChatHTMLStream;
   try
+    Viewer.Font.Name := 'Courier New';
+    Viewer.Font.Size := 8;
     Viewer.SetHtmlFromStream(aStream);
     //Viewer.SetHtmlFromFile(Application.Location + 'chat.html');
   finally
@@ -282,7 +284,7 @@ var
   aItem: TListItem;
   i: Integer;
 begin
-  UserListBox.Visible := True;
+  UsersPnl.Visible := True;
   UserListBox.Clear;
   for i := 0 to vUserNames.Count -1 do
   begin

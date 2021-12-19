@@ -62,6 +62,9 @@
             <CompilerMessages>
               <IgnoredMessages idx11031="True" idx11030="True" idx5024="True"/>
             </CompilerMessages>
+            <OtherDefines Count="1">
+              <Define0 Value="DEBUG"/>
+            </OtherDefines>
           </Other>
         </CompilerOptions>
       </Item2>
@@ -147,19 +150,19 @@
     </RunParams>
     <RequiredPackages Count="6">
       <Item1>
-        <PackageName Value="TurboPowerIPro"/>
+        <PackageName Value="MiniLib"/>
       </Item1>
       <Item2>
-        <PackageName Value="SynEdit"/>
+        <PackageName Value="TurboPowerIPro"/>
       </Item2>
       <Item3>
-        <PackageName Value="MiniCtrls"/>
+        <PackageName Value="SynEdit"/>
       </Item3>
       <Item4>
-        <PackageName Value="MiniSockets"/>
+        <PackageName Value="MiniCtrls"/>
       </Item4>
       <Item5>
-        <PackageName Value="MiniCommons"/>
+        <PackageName Value="MiniSockets"/>
       </Item5>
       <Item6>
         <PackageName Value="LCL"/>
@@ -236,6 +239,10 @@
       <CompilerMessages>
         <IgnoredMessages idx11031="True" idx11030="True" idx5024="True"/>
       </CompilerMessages>
+      <CustomOptions Value="-dDEBUG"/>
+      <OtherDefines Count="1">
+        <Define0 Value="DEBUG"/>
+      </OtherDefines>
     </Other>
   </CompilerOptions>
   <Debugging>

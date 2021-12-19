@@ -15,63 +15,35 @@ object ChatRoomFrame: TChatRoomFrame
   TabOrder = 0
   DesignLeft = 339
   DesignTop = 291
-  object Splitter2: TSplitter
-    Left = 403
-    Height = 268
-    Top = 61
-    Width = 6
-    Align = alRight
-    ResizeAnchor = akRight
-  end
-  object UserListBox: TListView
-    Left = 412
-    Height = 262
-    Top = 64
-    Width = 138
-    Align = alRight
-    AutoWidthLastColumn = True
-    BorderSpacing.Around = 3
-    Columns = <    
-      item
-        Caption = 'User'
-        Width = 134
-      end>
-    PopupMenu = UsersPopupMenu
-    ReadOnly = True
-    RowSelect = True
-    ShowColumnHeaders = False
-    SmallImages = MainFrm.SmallImageList
-    SortType = stText
-    TabOrder = 1
-    Visible = False
-    ViewStyle = vsReport
-  end
   object Panel1: TPanel
     Left = 0
-    Height = 29
+    Height = 31
     Top = 32
     Width = 553
     Align = alTop
     AutoSize = True
     BevelOuter = bvNone
-    ClientHeight = 29
+    ChildSizing.LeftRightSpacing = 3
+    ChildSizing.TopBottomSpacing = 3
+    ChildSizing.HorizontalSpacing = 3
+    ChildSizing.VerticalSpacing = 3
+    ClientHeight = 31
     ClientWidth = 553
-    TabOrder = 2
+    TabOrder = 0
     object TopicEdit: TEdit
       Left = 3
-      Height = 23
+      Height = 25
       Top = 3
-      Width = 522
+      Width = 519
       Align = alClient
-      BorderSpacing.Around = 3
       Color = clInfoBk
       ReadOnly = True
       TabOrder = 0
     end
     object ChangeTopicBtn: TButton
-      Left = 528
-      Height = 29
-      Top = 0
+      Left = 525
+      Height = 25
+      Top = 3
       Width = 25
       Align = alRight
       Caption = '...'
@@ -86,8 +58,40 @@ object ChatRoomFrame: TChatRoomFrame
     Width = 553
     Align = alTop
     BevelOuter = bvNone
-    TabOrder = 3
+    TabOrder = 1
     Visible = False
+  end
+  object UsersPnl: TntvPanel
+    Left = 370
+    Height = 266
+    Top = 63
+    Width = 183
+    Align = alRight
+    AutoSnap = True
+    ResizeStyle = nrsUpdate
+    object UserListBox: TListView
+      Left = 3
+      Height = 260
+      Top = 3
+      Width = 177
+      Align = alClient
+      AutoSort = False
+      AutoWidthLastColumn = True
+      BorderSpacing.Around = 3
+      Columns = <      
+        item
+          Caption = 'User'
+          Width = 173
+        end>
+      PopupMenu = UsersPopupMenu
+      ReadOnly = True
+      RowSelect = True
+      ShowColumnHeaders = False
+      SmallImages = MainFrm.SmallImageList
+      SortType = stText
+      TabOrder = 0
+      ViewStyle = vsReport
+    end
   end
   object UsersPopupMenu: TPopupMenu
     Left = 441

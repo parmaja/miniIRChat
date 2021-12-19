@@ -13,8 +13,12 @@ Is an open source desktop application for IRC chat
  * Portable, one executable file, take it any where.
  * Works in Windows and Linux
  * SSL/TLS 1.3 connection
+ * Mutli Server
+ * [TODO] Enable bounce option
+ * [TODO] Log History files
+ * [TODO] Empoji
+ * [TODO] Show Picture from URL
  * [TODO] Syntax Highlighter for language for message started with ``` (in middle of message too)
- * [TODO] Mutli Server
 
 ### Disadvantages
 

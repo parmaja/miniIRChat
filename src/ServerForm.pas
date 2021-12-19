@@ -68,7 +68,7 @@ begin
     AuthCbo.Items.AddObject('None/Custom', TObject(Ord(authNone)));
     AuthCbo.Items.AddObject('PASS', TObject(Ord(authPASS)));
     AuthCbo.Items.AddObject('IDENTIFY', TObject(Ord(authIDENTIFY)));
-    i := AuthCbo.Items.IndexOfObject(TObject(Ord(Profile.AuthType)));
+    i := AuthCbo.Items.IndexOfObject(TObject(PtrInt(Ord(Profile.AuthType))));
 
     if i < 0 then
       AuthCbo.ItemIndex := 0
@@ -93,7 +93,7 @@ begin
       Profile.NickNames := NicknameEdit.Text;
       Profile.RealName := RealNameEdit.Text;
 
-      Profile.AuthType := TIRCAuthType(Integer(AuthCbo.Items.Objects[AuthCbo.ItemIndex]));
+      Profile.AuthType := TIRCAuthType(IntPtr(AuthCbo.Items.Objects[AuthCbo.ItemIndex]));
 
       Profile.Username := UserEdit.Text;
       Profile.Password := PasswordEdit.Text;

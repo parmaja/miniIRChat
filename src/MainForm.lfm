@@ -17,15 +17,6 @@ object MainFrm: TMainFrm
   OnKeyDown = FormKeyDown
   OnWindowStateChange = FormWindowStateChange
   LCLVersion = '2.3.0.0'
-  object Splitter1: TSplitter
-    Cursor = crVSplit
-    Left = 0
-    Height = 5
-    Top = 262
-    Width = 848
-    Align = alBottom
-    ResizeAnchor = akBottom
-  end
   object Panel2: TPanel
     Left = 0
     Height = 32
@@ -50,7 +41,7 @@ object MainFrm: TMainFrm
       AutoSize = True
       Caption = '&Connect'
       OnClick = ConnectBtnClick
-      TabOrder = 5
+      TabOrder = 6
     end
     object JoinBtn: TButton
       Left = 747
@@ -62,7 +53,7 @@ object MainFrm: TMainFrm
       AutoSize = True
       Caption = '&Join'
       OnClick = JoinBtnClick
-      TabOrder = 6
+      TabOrder = 7
     end
     object ProfileCbo: TComboBox
       Left = 47
@@ -76,7 +67,7 @@ object MainFrm: TMainFrm
       TabOrder = 0
     end
     object AddBtn: TButton
-      Left = 212
+      Left = 288
       Height = 26
       Top = 3
       Width = 50
@@ -84,7 +75,7 @@ object MainFrm: TMainFrm
       AutoSize = True
       Caption = '&Add'
       OnClick = AddBtnClick
-      TabOrder = 1
+      TabOrder = 2
     end
     object Label6: TLabel
       Left = 5
@@ -98,7 +89,7 @@ object MainFrm: TMainFrm
       Layout = tlCenter
     end
     object DeleteBtn: TButton
-      Left = 316
+      Left = 392
       Height = 26
       Top = 3
       Width = 63
@@ -106,20 +97,20 @@ object MainFrm: TMainFrm
       AutoSize = True
       Caption = '&Delete'
       OnClick = DeleteBtnClick
-      TabOrder = 2
+      TabOrder = 4
     end
     object OptionsBtn: TButton
-      Left = 382
+      Left = 458
       Height = 26
       Top = 3
       Width = 72
       Align = alLeft
       AutoSize = True
       Caption = '&Options'
-      TabOrder = 4
+      TabOrder = 5
     end
     object EditBtn: TButton
-      Left = 265
+      Left = 341
       Height = 26
       Top = 3
       Width = 48
@@ -139,42 +130,33 @@ object MainFrm: TMainFrm
       Anchors = [akTop, akRight]
       AutoSize = True
       OnClick = ExitBtnClick
-      TabOrder = 7
+      TabOrder = 8
     end
-  end
-  object LogEdit: TMemo
-    Left = 2
-    Height = 167
-    Top = 269
-    Width = 844
-    Align = alBottom
-    BorderSpacing.Around = 2
-    Color = clBlack
-    Font.CharSet = ARABIC_CHARSET
-    Font.Color = clWhite
-    Font.Height = -13
-    Font.Name = 'Courier New'
-    Font.Pitch = fpFixed
-    Font.Quality = fqDraft
-    ParentFont = False
-    PopupMenu = LogPopupMenu
-    ReadOnly = True
-    ScrollBars = ssAutoBoth
-    TabOrder = 2
+    object ConnectBtn1: TButton
+      Left = 212
+      Height = 26
+      Top = 3
+      Width = 73
+      Align = alLeft
+      AutoSize = True
+      Caption = '&Connect'
+      OnClick = ConnectBtn1Click
+      TabOrder = 1
+    end
   end
   object ChatPnl: TPanel
     Left = 0
-    Height = 230
+    Height = 259
     Top = 32
     Width = 848
     Align = alClient
     BevelOuter = bvNone
-    ClientHeight = 230
+    ClientHeight = 259
     ClientWidth = 848
-    TabOrder = 3
+    TabOrder = 1
     object MsgPageControl: TPageControl
       Left = 2
-      Height = 196
+      Height = 225
       Top = 2
       Width = 844
       Align = alClient
@@ -185,7 +167,7 @@ object MainFrm: TMainFrm
     object SendPnl: TPanel
       Left = 2
       Height = 28
-      Top = 200
+      Top = 229
       Width = 844
       Align = alBottom
       BorderSpacing.Around = 2
@@ -203,7 +185,7 @@ object MainFrm: TMainFrm
         AutoSize = True
         Caption = 'Send'
         OnClick = SendBtnClick
-        TabOrder = 0
+        TabOrder = 1
       end
       object NicknameBtn: TButton
         Left = 0
@@ -214,7 +196,7 @@ object MainFrm: TMainFrm
         AutoSize = True
         Caption = 'Name'
         OnClick = NicknameBtnClick
-        TabOrder = 1
+        TabOrder = 2
       end
       object SendEdit: TMemo
         Left = 61
@@ -224,18 +206,48 @@ object MainFrm: TMainFrm
         Align = alClient
         Anchors = [akLeft, akRight, akBottom]
         OnKeyDown = SendEditKeyDown
-        TabOrder = 2
+        TabOrder = 0
       end
+    end
+  end
+  object LogPnl: TntvPanel
+    Left = 0
+    Height = 143
+    Top = 291
+    Width = 848
+    Align = alBottom
+    Visible = False
+    ResizeStyle = nrsUpdate
+    object LogEdit: TMemo
+      Left = 0
+      Height = 135
+      Top = 8
+      Width = 848
+      Align = alClient
+      Color = clBlack
+      Font.CharSet = ARABIC_CHARSET
+      Font.Color = clWhite
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Pitch = fpFixed
+      Font.Quality = fqDraft
+      ParentFont = False
+      PopupMenu = LogPopupMenu
+      ReadOnly = True
+      ScrollBars = ssAutoBoth
+      TabOrder = 0
     end
   end
   object StatusPnl: TPanel
     Left = 0
-    Height = 21
-    Top = 438
+    Height = 25
+    Top = 434
     Width = 848
     Align = alBottom
+    BevelInner = bvLowered
     BevelOuter = bvNone
-    TabOrder = 4
+    BorderWidth = 2
+    TabOrder = 3
   end
   object LogPopupMenu: TPopupMenu
     Left = 267
@@ -246,8 +258,8 @@ object MainFrm: TMainFrm
     end
   end
   object SmallImageList: TImageList
-    Left = 176
-    Top = 160
+    Left = 280
+    Top = 92
     Bitmap = {
       4C7A040000001000000010000000370100000000000078DAED965D1284200880
       F74A9EC963F4D0453C93576243A550516CAB691F648675FDF9400BA4CFE71959
@@ -677,7 +689,7 @@ object MainFrm: TMainFrm
   end
   object TrayPopupMenu: TPopupMenu
     Left = 87
-    Top = 93
+    Top = 92
     object ShowMnu: TMenuItem
       Caption = 'Show'
     end
@@ -689,8 +701,8 @@ object MainFrm: TMainFrm
     end
   end
   object ActionList: TActionList
-    Left = 480
-    Top = 138
+    Left = 392
+    Top = 92
     object ExitAct: TAction
       Caption = 'E&xit'
       OnExecute = ExitActExecute
