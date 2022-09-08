@@ -1,28 +1,28 @@
 object ServerForm: TServerForm
   Left = 482
-  Height = 402
+  Height = 440
   Top = 323
   Width = 302
   BorderStyle = bsDialog
   Caption = 'Server Profile'
-  ClientHeight = 402
+  ClientHeight = 440
   ClientWidth = 302
   OnCreate = FormCreate
   Position = poMainFormCenter
   LCLVersion = '2.3.0.0'
   object UseSSLChk: TCheckBox
-    Left = 251
+    Left = 237
     Height = 19
-    Top = 36
-    Width = 38
+    Top = 64
+    Width = 36
     Anchors = [akTop, akRight]
     Caption = 'SS&L'
     TabOrder = 3
   end
   object PortEdit: TEdit
-    Left = 173
+    Left = 230
     Height = 23
-    Top = 36
+    Top = 35
     Width = 65
     Anchors = [akTop, akRight]
     TabOrder = 2
@@ -32,7 +32,7 @@ object ServerForm: TServerForm
     Left = 48
     Height = 23
     Top = 35
-    Width = 119
+    Width = 178
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 1
     Text = '192.168.1.2'
@@ -48,7 +48,7 @@ object ServerForm: TServerForm
   object PasswordEdit: TEdit
     Left = 85
     Height = 23
-    Top = 90
+    Top = 127
     Width = 154
     EchoMode = emPassword
     PasswordChar = '*'
@@ -57,7 +57,7 @@ object ServerForm: TServerForm
   object Label3: TLabel
     Left = 8
     Height = 15
-    Top = 94
+    Top = 131
     Width = 50
     Caption = '&Password'
     FocusControl = PasswordEdit
@@ -65,7 +65,7 @@ object ServerForm: TServerForm
   object UserEdit: TEdit
     Left = 85
     Height = 23
-    Top = 62
+    Top = 99
     Width = 154
     TabOrder = 4
     Text = 'zaher'
@@ -73,7 +73,7 @@ object ServerForm: TServerForm
   object Label5: TLabel
     Left = 8
     Height = 15
-    Top = 66
+    Top = 103
     Width = 53
     Caption = '&Username'
     FocusControl = UserEdit
@@ -81,14 +81,14 @@ object ServerForm: TServerForm
   object Label2: TLabel
     Left = 8
     Height = 15
-    Top = 246
+    Top = 283
     Width = 94
     Caption = 'Nic&knames (use ,)'
   end
   object NicknameEdit: TEdit
     Left = 8
     Height = 23
-    Top = 266
+    Top = 303
     Width = 287
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 9
@@ -96,7 +96,7 @@ object ServerForm: TServerForm
   object Label1: TLabel
     Left = 8
     Height = 15
-    Top = 293
+    Top = 330
     Width = 86
     Caption = 'Auto join &rooms'
     FocusControl = RoomsEdit
@@ -105,15 +105,15 @@ object ServerForm: TServerForm
     Left = 8
     Height = 23
     Hint = 'You can use , between rooms'
-    Top = 314
-    Width = 286
+    Top = 351
+    Width = 287
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 10
   end
   object Button1: TButton
     Left = 8
     Height = 25
-    Top = 368
+    Top = 406
     Width = 75
     Anchors = [akLeft, akBottom]
     Caption = 'OK'
@@ -124,7 +124,7 @@ object ServerForm: TServerForm
   object Button2: TButton
     Left = 86
     Height = 25
-    Top = 368
+    Top = 406
     Width = 75
     Anchors = [akLeft, akBottom]
     Cancel = True
@@ -143,14 +143,14 @@ object ServerForm: TServerForm
     Left = 84
     Height = 23
     Top = 5
-    Width = 154
+    Width = 211
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 0
   end
   object AuthCbo: TComboBox
     Left = 85
     Height = 23
-    Top = 118
+    Top = 155
     Width = 153
     ItemHeight = 15
     Style = csDropDownList
@@ -159,7 +159,7 @@ object ServerForm: TServerForm
   object Label7: TLabel
     Left = 8
     Height = 15
-    Top = 122
+    Top = 159
     Width = 55
     BorderSpacing.Left = 5
     BorderSpacing.Right = 5
@@ -169,14 +169,14 @@ object ServerForm: TServerForm
   object Label8: TLabel
     Left = 8
     Height = 15
-    Top = 148
+    Top = 185
     Width = 71
     Caption = 'Custom Auth'
   end
   object CustomAuthEdit: TEdit
     Left = 8
     Height = 23
-    Top = 169
+    Top = 206
     Width = 287
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 7
@@ -184,25 +184,41 @@ object ServerForm: TServerForm
   object Label9: TLabel
     Left = 8
     Height = 15
-    Top = 197
+    Top = 234
     Width = 55
     Caption = 'Real &name'
   end
   object RealNameEdit: TEdit
     Left = 8
     Height = 23
-    Top = 217
+    Top = 254
     Width = 287
     Anchors = [akTop, akLeft, akRight]
     TabOrder = 8
   end
   object AutoConnectChk: TCheckBox
-    Left = 8
+    Left = 10
     Height = 19
-    Top = 342
-    Width = 94
+    Top = 379
+    Width = 92
     Anchors = [akTop, akRight]
     Caption = 'Auto Connect'
     TabOrder = 13
+  end
+  object BindEdit: TEdit
+    Left = 48
+    Height = 23
+    Top = 62
+    Width = 178
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 14
+  end
+  object Label10: TLabel
+    Left = 8
+    Height = 15
+    Top = 65
+    Width = 24
+    Caption = '&Bind'
+    FocusControl = BindEdit
   end
 end

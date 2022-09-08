@@ -13,7 +13,7 @@ uses
   Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, ComCtrls, Menus, Graphics,
   LCLType, PairSplitter,
   {$ifdef use_webbrowser}
-  IpHtml,
+  IpHtml, IpHtmlNodes, IpHtmlTypes,
   //HtmlView, HTMLSubs,
   {$endif}
   SynEdit, SynHighlighterMulti,
@@ -73,7 +73,8 @@ implementation
 
 function CreateChatHTMLStream: TStream;
 begin
-  Result := TResourceStream.Create(hInstance, 'ChatHtml', RT_RCDATA);
+  Result := TFileStream.Create(Application.Location + 'chat.html', fmOpenRead);
+  //Result := TResourceStream.Create(hInstance, 'ChatHtml', RT_RCDATA);
 end;
 
 {$R *.lfm}

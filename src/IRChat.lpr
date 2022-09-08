@@ -15,7 +15,7 @@ uses
   Forms, MainForm, mnIRCClients, ChatRoomFrames, ServerForm, IRChatClasses;
 
 {$R *.res}
-{$R IRChatRes.rc}
+//{$R IRChatRes.rc}
 
 begin
   RequireDerivedFormResource :=True;

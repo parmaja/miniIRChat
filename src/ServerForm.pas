@@ -20,7 +20,9 @@ type
     Button1: TButton;
     Button2: TButton;
     HostEdit: TEdit;
+    BindEdit: TEdit;
     Label1: TLabel;
+    Label10: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Label4: TLabel;
@@ -58,6 +60,7 @@ begin
     TitleEdit.Text := Profile.Title;
 
     HostEdit.Text := Profile.Host;
+    BindEdit.Text := Profile.Bind;
     PortEdit.Text := Profile.Port;
     UseSSLChk.Checked := Profile.UseSSL;
     AutoConnectChk.Checked := Profile.AutoConnect;
@@ -86,6 +89,7 @@ begin
       Profile.Title := TitleEdit.Text;
 
       Profile.Host := HostEdit.Text;
+      Profile.Bind := BindEdit.Text;
       Profile.Port := PortEdit.Text;
       Profile.UseSSL := UseSSLChk.Checked;
       Profile.AutoConnect := AutoConnectChk.Checked;

@@ -19,6 +19,7 @@ type
     Title: string;
 
     Host: string;
+    Bind: string;
     Port: string;
     UseSSL: Boolean;
 
@@ -114,6 +115,7 @@ begin
     Ini.WriteString(AName, 'RealName', Profile.RealName);
     Ini.WriteString(AName, 'Rooms', Profile.Rooms);
     Ini.WriteString(AName, 'Host', Profile.Host);
+    Ini.WriteString(AName, 'Bind', Profile.Bind);
     Ini.WriteString(AName, 'Port', Profile.Port);
     Ini.WriteString(AName, 'AuthType', AuthToString(Profile.AuthType));
     Ini.WriteString(AName, 'CustomAuth', Profile.CustomAuth);
@@ -138,6 +140,7 @@ begin
     Profile.RealName := Ini.ReadString(AName, 'RealName', '');
     Profile.Rooms := Ini.ReadString(AName, 'Rooms', '');
     Profile.Host := Ini.ReadString(AName, 'Host', '');
+    Profile.Bind := Ini.ReadString(AName, 'Bind', '');
     Profile.Port := Ini.ReadString(AName, 'Port', '6667');
     Profile.AuthType := StringToAuth(Ini.ReadString(AName, 'AuthType', ''));
     Profile.CustomAuth := Ini.ReadString(AName, 'CustomAuth', '');
@@ -226,6 +229,7 @@ procedure TIRCChatClient.DoBeforeOpen;
 begin
   inherited;
   Host := Profile.Host;
+  Bind := Profile.Bind;
   Port := Profile.Port;
   UseSSL := Profile.UseSSL;
 
