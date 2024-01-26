@@ -17,6 +17,7 @@ uses
   //HtmlView, HTMLSubs,
   {$endif}
   SynEdit, SynHighlighterMulti,
+  mnMsgBox, GUIMsgBox,
   mnIRCClients, ntvPanels;
 
 type
@@ -27,6 +28,7 @@ type
     ChangeTopicBtn: TButton;
     MenuItem1: TMenuItem;
     AdminPnl: TPanel;
+    NicknameBtn: TButton;
     UsersPnl: TntvPanel;
     SaveAsHtmlMnu: TMenuItem;
     Panel1: TPanel;
@@ -39,6 +41,7 @@ type
     UsersPopupMenu: TPopupMenu;
     procedure ChangeTopicBtnClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
+    procedure NicknameBtnClick(Sender: TObject);
     procedure OpMnuClick(Sender: TObject);
     procedure SaveAsHtmlMnuClick(Sender: TObject);
     procedure WhoIsMnuClick(Sender: TObject);
@@ -97,6 +100,17 @@ begin
   aUser := GetCurrentUser;
   if aUser <> '' then
     IRCClient.OpUser(ChannelName, aUser);
+end;
+
+procedure TChatRoomFrame.NicknameBtnClick(Sender: TObject);
+var
+  aNick: string;
+begin
+  aNick := IRCClient.Session.Nick;
+  if MsgBox.Input(aNick, 'New Nickname?') then
+  begin
+    IRCClient.SetNick(aNick);
+  end;
 end;
 
 procedure TChatRoomFrame.SaveAsHtmlMnuClick(Sender: TObject);
@@ -304,6 +318,7 @@ begin
         aItem.ImageIndex := 0;
     end;
   end;
+  NicknameBtn.Caption := IRCClient.Session.Nick;
 end;
 
 function TChatRoomFrame.SendMessage(vMsg: string): Boolean;

@@ -9,7 +9,8 @@ unit MainForm;
 interface
 
 uses
-  Classes, SysUtils, StrUtils, FileUtil, IpHtml, Forms, Controls, Graphics,
+  Classes, SysUtils, StrUtils, FileUtil, IpHtml, SynEdit, Forms, Controls,
+  Graphics,
   {$ifdef windows}Windows,{$endif}
   Dialogs, Buttons, IniFiles, StdCtrls, ExtCtrls, ComCtrls, Menus, LCLType,
   ActnList, TypInfo, mnMsgBox, GUIMsgBox, ntvPanels, mnLogs, mnClasses,
@@ -39,6 +40,7 @@ type
   TMainFrm = class(TForm)
     ChatPnl: TPanel;
     ConnectBtn1: TButton;
+    DisconnectBtn: TButton;
     ExitAct: TAction;
     ActionList: TActionList;
     AddBtn: TButton;
@@ -46,16 +48,15 @@ type
     LogEdit: TMemo;
     MenuItem2: TMenuItem;
     MsgPageControl: TPageControl;
-    NicknameBtn: TButton;
     LogPnl: TntvPanel;
     SendBtn: TButton;
-    SendEdit: TMemo;
     SendPnl: TPanel;
     ShowMnu: TMenuItem;
     ExitMnu: TMenuItem;
     DeleteBtn: TButton;
     EditBtn: TButton;
     StatusPnl: TPanel;
+    SendEdit: TSynEdit;
     TrayIcon: TTrayIcon;
     TrayPopupMenu: TPopupMenu;
     OptionsBtn: TButton;
@@ -69,6 +70,7 @@ type
     SmallImageList: TImageList;
     procedure AddBtnClick(Sender: TObject);
     procedure ConnectBtn1Click(Sender: TObject);
+    procedure DisconnectBtnClick(Sender: TObject);
     procedure EditBtnClick(Sender: TObject);
     procedure ExitActExecute(Sender: TObject);
     procedure ExitBtnClick(Sender: TObject);
@@ -81,11 +83,11 @@ type
     procedure JoinBtnClick(Sender: TObject);
     procedure MenuItem1Click(Sender: TObject);
     procedure MsgPageControlChange(Sender: TObject);
-    procedure NicknameBtnClick(Sender: TObject);
     procedure PasswordEditChange(Sender: TObject);
     procedure ProfileCboSelect(Sender: TObject);
     procedure SendBtnClick(Sender: TObject);
     procedure SendEditKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure SendEditKeyPress(Sender: TObject; var Key: char);
     procedure TrayIconClick(Sender: TObject);
     procedure TrayIconDblClick(Sender: TObject);
   private
@@ -180,14 +182,14 @@ procedure TuiIRCChatClient.DoProgressChanged;
 begin
   inherited;
   case Progress of
-    prgDisconnected:
+    prgClosed:
     begin
       while MainFrm.MsgPageControl.PageCount > 0 do
         MainFrm.MsgPageControl.Page[0].Free;
     end;
-    prgConnecting:;
+    prgOpening:;
       //MainFrm.ConnectBtn.Caption := 'Connecting';
-    prgConnected:
+    prgActive:
     begin
       MainFrm.SendEdit.SetFocus;
     end;
@@ -242,7 +244,7 @@ end;
 
 procedure TMainFrm.FormCreate(Sender: TObject);
 begin
-  {$ifdef D+}
+  {$ifdef DEBUG}
   LogPnl.Visible := true;
   {$endif}
 end;
@@ -274,6 +276,11 @@ end;
 procedure TMainFrm.ConnectBtn1Click(Sender: TObject);
 begin
   IRCClients.Open(ProfileCbo.Text);
+end;
+
+procedure TMainFrm.DisconnectBtnClick(Sender: TObject);
+begin
+  IRCClients.Close;
 end;
 
 procedure TMainFrm.EditBtnClick(Sender: TObject);
@@ -368,21 +375,7 @@ procedure TMainFrm.MsgPageControlChange(Sender: TObject);
 begin
   if CurrentChannelFrame <> nil then
   begin
-    NicknameBtn.Caption := CurrentChannelFrame.IRCClient.Session.Nick;
-  end;
-end;
-
-procedure TMainFrm.NicknameBtnClick(Sender: TObject);
-var
-  aNick: string;
-begin
-  if CurrentChannelFrame <> nil then
-  begin
-    aNick := CurrentChannelFrame.IRCClient.Session.Nick;
-    if MsgBox.Input(aNick, 'New Nickname?') then
-    begin
-      CurrentChannelFrame.IRCClient.SetNick(aNick);
-    end;
+    CurrentChannelFrame.NicknameBtn.Caption := CurrentChannelFrame.IRCClient.Session.Nick;
   end;
 end;
 
@@ -422,6 +415,11 @@ begin
   end;
 end;
 
+procedure TMainFrm.SendEditKeyPress(Sender: TObject; var Key: char);
+begin
+
+end;
+
 procedure TMainFrm.TrayIconClick(Sender: TObject);
 begin
   ForceForegroundWindow;
@@ -438,13 +436,15 @@ var
 begin
   if CurrentChannelFrame <> nil then
   begin
-    s := TrimRight(SendEdit.Text);
-    if s <> '' then
-      if CurrentChannelFrame.SendMessage(s) then
-      begin
-        AddRecent(SendEdit.Text);
-        SendEdit.Text := '';
-      end;
+    for s in SendEdit.Lines do
+    begin
+      if s <> '' then
+        if CurrentChannelFrame.SendMessage(s) then
+        begin
+        end;
+     end;
+    AddRecent(SendEdit.Text);
+    SendEdit.Text := '';
   end;
 end;
 
@@ -511,7 +511,8 @@ end;
 
 procedure TMainFrm.SetNick(ANick: string);
 begin
-  NicknameBtn.Caption := ANick;
+  if CurrentChannelFrame <> nil then
+    CurrentChannelFrame.NicknameBtn.Caption := ANick;
  //TODO change it in the list
 end;
 
@@ -722,7 +723,7 @@ procedure TMainFrm.IRCStatusChanged(Sender: TuiIRCChatClient);
 begin
   if CurrentChannelFrame <> nil then
   begin
-    NicknameBtn.Caption := CurrentChannelFrame.IRCClient.Session.Nick;
+    CurrentChannelFrame.NicknameBtn.Caption := CurrentChannelFrame.IRCClient.Session.Nick;
   end;
 end;
 

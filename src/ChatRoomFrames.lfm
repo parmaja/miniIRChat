@@ -70,10 +70,10 @@ object ChatRoomFrame: TChatRoomFrame
     AutoSnap = True
     ResizeStyle = nrsUpdate
     object UserListBox: TListView
-      Left = 3
-      Height = 260
-      Top = 3
-      Width = 177
+      Left = 11
+      Height = 235
+      Top = 28
+      Width = 169
       Align = alClient
       AutoSort = False
       AutoWidthLastColumn = True
@@ -81,7 +81,7 @@ object ChatRoomFrame: TChatRoomFrame
       Columns = <      
         item
           Caption = 'User'
-          Width = 173
+          Width = 165
         end>
       PopupMenu = UsersPopupMenu
       ReadOnly = True
@@ -92,10 +92,21 @@ object ChatRoomFrame: TChatRoomFrame
       TabOrder = 0
       ViewStyle = vsReport
     end
+    object NicknameBtn: TButton
+      Left = 8
+      Height = 25
+      Top = 0
+      Width = 175
+      Align = alTop
+      AutoSize = True
+      Caption = 'Name'
+      OnClick = NicknameBtnClick
+      TabOrder = 1
+    end
   end
   object UsersPopupMenu: TPopupMenu
     Left = 441
-    Top = 90
+    Top = 116
     object MenuItem2: TMenuItem
       Caption = 'Private Chat'
       Visible = False
