@@ -12,11 +12,11 @@ object MainFrm: TMainFrm
   Font.Pitch = fpVariable
   Font.Quality = fqDraft
   KeyPreview = True
+  LCLVersion = '3.99.0.0'
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnWindowStateChange = FormWindowStateChange
-  LCLVersion = '2.3.0.0'
   object Panel2: TPanel
     Left = 0
     Height = 32
@@ -40,8 +40,8 @@ object MainFrm: TMainFrm
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = 'Connect &All'
-      OnClick = ConnectBtnClick
       TabOrder = 6
+      OnClick = ConnectBtnClick
     end
     object JoinBtn: TButton
       Left = 747
@@ -52,8 +52,8 @@ object MainFrm: TMainFrm
       Anchors = [akTop, akRight]
       AutoSize = True
       Caption = '&Join'
-      OnClick = JoinBtnClick
       TabOrder = 7
+      OnClick = JoinBtnClick
     end
     object ProfileCbo: TComboBox
       Left = 47
@@ -62,9 +62,9 @@ object MainFrm: TMainFrm
       Width = 162
       Align = alLeft
       ItemHeight = 17
-      OnSelect = ProfileCboSelect
       Style = csDropDownList
       TabOrder = 0
+      OnSelect = ProfileCboSelect
     end
     object AddBtn: TButton
       Left = 288
@@ -74,8 +74,8 @@ object MainFrm: TMainFrm
       Align = alLeft
       AutoSize = True
       Caption = '&Add'
-      OnClick = AddBtnClick
       TabOrder = 2
+      OnClick = AddBtnClick
     end
     object Label6: TLabel
       Left = 5
@@ -96,8 +96,8 @@ object MainFrm: TMainFrm
       Align = alLeft
       AutoSize = True
       Caption = '&Delete'
-      OnClick = DeleteBtnClick
       TabOrder = 4
+      OnClick = DeleteBtnClick
     end
     object OptionsBtn: TButton
       Left = 458
@@ -117,8 +117,8 @@ object MainFrm: TMainFrm
       Align = alLeft
       AutoSize = True
       Caption = '&Edit'
-      OnClick = EditBtnClick
       TabOrder = 3
+      OnClick = EditBtnClick
     end
     object ExitBtn: TButton
       Left = 799
@@ -129,8 +129,8 @@ object MainFrm: TMainFrm
       Align = alRight
       Anchors = [akTop, akRight]
       AutoSize = True
-      OnClick = ExitBtnClick
       TabOrder = 8
+      OnClick = ExitBtnClick
     end
     object ConnectBtn1: TButton
       Left = 212
@@ -140,8 +140,8 @@ object MainFrm: TMainFrm
       Align = alLeft
       AutoSize = True
       Caption = '&Connect'
-      OnClick = ConnectBtn1Click
       TabOrder = 1
+      OnClick = ConnectBtn1Click
     end
     object DisconnectBtn: TButton
       Left = 533
@@ -151,8 +151,8 @@ object MainFrm: TMainFrm
       Align = alLeft
       AutoSize = True
       Caption = '&Disconnect'
-      OnClick = DisconnectBtnClick
       TabOrder = 9
+      OnClick = DisconnectBtnClick
     end
   end
   object ChatPnl: TPanel
@@ -195,8 +195,8 @@ object MainFrm: TMainFrm
         Anchors = [akRight, akBottom]
         AutoSize = True
         Caption = 'Send'
-        OnClick = SendBtnClick
         TabOrder = 0
+        OnClick = SendBtnClick
       end
       inline SendEdit: TSynEdit
         Left = 0
@@ -666,6 +666,8 @@ object MainFrm: TMainFrm
           object SynGutterMarks1: TSynGutterMarks
             Width = 24
             MouseActions = <>
+            MaxExtraMarksColums = 0
+            Options = [sgmoDeDuplicateMarksOnOverflow]
           end
           object SynGutterLineNumber1: TSynGutterLineNumber
             Width = 17

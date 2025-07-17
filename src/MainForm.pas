@@ -116,7 +116,7 @@ type
     procedure EnumProfiles;
     procedure SaveConfig;
 
-    procedure LogMsg(S: string);
+    procedure LogMsg(const S: string);
     procedure IRCStatusChanged(Sender: TuiIRCChatClient);
     procedure IRCLogMessage(Sender: TuiIRCChatClient; S: string);
     procedure IRCReceive(Sender: TuiIRCChatClient; vMsgType: TIRCMsgType; vChannel, vUser, vMsg: String);
@@ -714,7 +714,7 @@ begin
   end;
 end;
 
-procedure TMainFrm.LogMsg(S: string);
+procedure TMainFrm.LogMsg(const S: string);
 begin
   LogEdit.Lines.Add(S)
 end;
