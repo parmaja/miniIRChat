@@ -161,8 +161,14 @@ end;
 {$endif}
 
 procedure TChatRoomFrame.ChangeTopicBtnClick(Sender: TObject);
+var
+  aTopic: string;
 begin
-
+  aTopic := TopicEdit.Text;
+  if MsgBox.Input(aTopic, 'Change topic') then
+  begin
+    IRCClient.SetTopic(ChannelName, aTopic);
+  end;
 end;
 
 constructor TChatRoomFrame.Create(TheOwner: TComponent);

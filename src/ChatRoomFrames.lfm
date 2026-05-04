@@ -11,6 +11,7 @@ object ChatRoomFrame: TChatRoomFrame
   Font.Name = 'Consolas'
   Font.Pitch = fpFixed
   Font.Quality = fqDraft
+  LCLVersion = '4.99.0.0'
   ParentFont = False
   TabOrder = 0
   DesignLeft = 339
@@ -47,8 +48,8 @@ object ChatRoomFrame: TChatRoomFrame
       Width = 25
       Align = alRight
       Caption = '...'
-      OnClick = ChangeTopicBtnClick
       TabOrder = 1
+      OnClick = ChangeTopicBtnClick
     end
   end
   object AdminPnl: TPanel
@@ -100,8 +101,8 @@ object ChatRoomFrame: TChatRoomFrame
       Align = alTop
       AutoSize = True
       Caption = 'Name'
-      OnClick = NicknameBtnClick
       TabOrder = 1
+      OnClick = NicknameBtnClick
     end
   end
   object UsersPopupMenu: TPopupMenu
